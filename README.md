@@ -35,6 +35,9 @@ Preporuka je:
 - Poštovati definisane standarde i konvencije
 
 
+
+(Fajl generisan od strane ČedeGPT-a)
+
 ## Autor
 
 Kreirano od: _**Filip Stanojlović**_
