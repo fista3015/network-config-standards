@@ -36,7 +36,7 @@ Preporuka je:
 
 
 
-(Fajl generisan od strane ČedeGPT-a)
+### Fajl generisan od strane ČedeGPT-a
 
 ## Autor
 
