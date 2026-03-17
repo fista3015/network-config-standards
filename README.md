@@ -37,4 +37,4 @@ Preporuka je:
 
 ## Autor
 
-Kreirano od: Filip Stanojlović
+Kreirano od: _**Filip Stanojlović**_
