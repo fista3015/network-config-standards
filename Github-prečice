@@ -1,0 +1,37 @@
+# Naslov
+
+## Sekcija
+
+**Bold**
+*Italic*
+
+- Lista
+
+```bash
+CLI config
+
+
+# ⚡ BONUS (GitHub editor trikovi)
+
+U GitHub web editoru možeš:
+
+- **Ctrl + B** → bold
+- **Ctrl + I** → italic
+- Tab → indent (za config blokove)
+
+---
+
+# 💡 Pro tip (za tvoje use-case)
+
+Za mrežne konfiguracije:
+👉 UVEK koristi:
+
+````markdown
+```bash
+(config)
+
+ili
+
+````markdown
+```plaintext
+```
