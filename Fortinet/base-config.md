@@ -128,6 +128,41 @@ config system password-policy
 end
 ```
 
+### Konfiguracija administratora
+Zaprepašćujući broj korisnika ne briše podrazumevanog korisnika koji se koristi tokom inicijalizacije uređaja. Potrebno je u svakoj implementaciji izbrisati podrazumevanog korisnika, kao i definisati IP adrese preko kojeg administratori mogu pristupiti uređaju.
+```
+config system admin
+	delete admin
+    edit "<IME-ADMINISTRATORA>"
+        set trusthost1 <MENADŽMENT1-IP/MASK>
+		set trusthost2 <MENADŽMENT2-IP/MASK>
+		set trusthost3 <MENADŽMENT3-IP/MASK>
+        set accprofile "<IME-ADMINISTRATORSKOG-PROFILA>"
+        set vdom "root"
+        set password <ŠIFRA-ADMINISTRATORA>
+    next
+end
+```
+
+### Konfiguracija administratorskog profila
+Preporučuje se kreiranje novih administratorskih profila sa nivoem pristupa po tipskoj potrebi administratora. 
+
+Jedan primer pravilnog limitiranja pristupa postoji u našem CT Cloud-u, gde se za određenog korisnika dopušta pristup CyberStellar alatu koji dinamički upisuje blacklist-ovane IP adrese kroz adresne objekte u postojeću adresnu grupu koja se koristi u firewall pravilu.
+```
+config system accprofile
+    edit "<IME-ADMINISTRATORSKOG-PROFILA"
+        set fwgrp custom
+        config fwgrp-permission
+            set address read-write
+        end
+    next
+end
+```
+
+### Menjanje podrazumevanih menadžment portova
+
+
+
 ### Povećavanje timeout-a nakon unosa pogrešne šifre administratora
 Podrazumevana vrednost je 60 sekundi. Preporučuje se povećanje timer-a na bar 5 minuta(300 sekundi)
 ``` 
@@ -194,10 +229,18 @@ config system snmp user
 end
 ```
 
-U slučaju da se ne koristi SNMP verzija 2, preporučuje se brisanje svih community-ja.
+U slučaju da se koristi samo SNMP verzija 3, preporučuje se brisanje svih community-ja.
 ```
 config system community
 	purge
+end
+```
+
+Preporuka je da se smanji limit prijave prilikom zauzeća memorije na uređajima.
+```
+config system sysinfo
+	set trap-free-memory-threshold 25
+	set trap-freeable-memory-threshold 50
 end
 ```
 
