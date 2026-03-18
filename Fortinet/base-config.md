@@ -104,6 +104,8 @@ Potrebno je uvek pratiti novosti PSIRT-a vezane za slabosti firmware verzija ure
 ### Gašenje USB auto install opcije
 Preporučeno je ugasiti opciju automatskog instaliranja verzije i konfiguracije na firewall uređaju pomoću USB interfejsa. Time štitimo našu mrežnu infrastrukturu od lica koji imaju fizički pristup opremi.
 
+1
+
 U slučajevima kada izvršavamo ZTP, odnosno LTP, implementaciju uređaja pomoću USB-a se preporučuje podrazumevano podešavanje dok se ZTP proces ne završi.
 ```
 config system auto-install
