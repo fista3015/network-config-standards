@@ -1,5 +1,7 @@
 # FortiGate baseline konfiguracija prilikom inicijalizacije uređaja
 
+[DRAFT VERZIJA!!!]
+
 Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pre implementacije u produkciono okruženje.
 
 - [Početak dokumenta](#fortigate-baseline-konfiguracija-prilikom-inicijalizacije-uređaja)
