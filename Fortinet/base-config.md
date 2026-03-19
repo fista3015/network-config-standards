@@ -415,5 +415,3 @@ config log disk setting
     set maximum-log-age 0
 end
 ```
-
-#TEST
