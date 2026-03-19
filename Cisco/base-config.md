@@ -1,0 +1,1 @@
+Cisco samo SW valjaju
