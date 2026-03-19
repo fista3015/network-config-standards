@@ -4,9 +4,46 @@ Baseline konfiguracija FortiGate firewall uređaja prilikom inicijalizacije ure�
 
 - [Početak dokumenta](#fortigate-baseline-konfiguracija-prilikom-inicijalizacije-uređaja)
 	- [Sistemska podešavanja](#sistemska-podešavanja)
+		- [Podešavanje imena uređaja](#podešavanja-imena-uređaja)
+		- [Upgrade firewall uređaja](#upgrade-firewall-uređaja)
+		- [Gašenje opcije automatskog upgrade-a](#gašenje-opcije-automatskog-upgrade-a)
+		- [Konfiguracija DNS servera](#konfiguracija-dns-servera)
+		- [Konfiguracija NTP servera](#konfiguracija-ntp-servera)
+		- [Konfiguracija SNMP servera](#konfiguracija-snmp-servera)
+	- [Konfiguracija High-Availability(HA)](#konfiguracija-high-availability(HA))
+		- [Inicijalna konfiguracija HA](#inicijalna-konfiguracija-ha)
+		- [Replikacija sesija](#replikacija-sesija)
+		- [Failover kriterijumi](#failover-kriterijumi)
+		- [Failover opcije](#failover-opcije)
+		- [Konfiguracija VDOM particija](#konfiguracija-vdom-particija)
 	- [Podešavanja intefejsa](#podešavanja-interfejsa)
+		- [Blokiranje intra-zone saobraćaja](#blokiranje-intra-zone-saobraćaja)
+		- [Gašenje nekorišćenih interfejsa](#gašenje-nekorišćenih-interfejsa)
+		- [Brisanje nekorišćenih DHCP servera](#brisanje-nekorišćenih-dhcp-servera)
+		- [Gašenje menadžment servisa na svim interfejsima koji nisu za menadžment](#gašenje-menadžment-servisa-na-svim-interfejsima-koji-nisu-za-menadžment)
+		- [Definisanje protoka na WAN interfejsima](#definisanje-protoka-na-wan-interfejsima)
+		- [Konfiguracija detekcije uređaja](#konfiguracija-detekcije-uređaja)
 	- [Administatorski pristup](#administratorski-pristup)
+		- [Konfiguracija password polise](#konfiguracija-password-polise)
+		- [Konfiguracija administratora](#konfiguracija-administratora)
+		- [Konfiguracija Multi-Factor Authentication(MFA) za administratora](#konfiguracija-multi-factor-authentication(MFA)-za-administratora)
+		- [Konfiguracija break-glass administratora](#konfiguracija-break-glass-administratora)
+		- [Konfiguracija administratorskog profila](#konfiguracija-administratorskog-profila)
+		- [Modifikovanje podrazumevanih menadžment portova](#modifikovanje-podrazumevanih-menadžment-portova)
+		- [Povećavanja timeout-a za administratorski pristup](#povećavanje-timeout-a-za-administratorski-pristup)
+		- [Povećavanja timeout-a za idle stanje administratora](#povećavanje-timeout-a-za-idle-stanje-administratora)
+		- [Pre-login banner](#pre-login-banner)
+		- [Post-login banner](#post-login-banner)
+		- [Gašenje USB auto install opcije](#gašenje-usb-auto-install-opcije)
+		- [Gašenje FortiCloud SSO pristupa](#gašenje-forticloud-sso-pristupa)
 	- [Logovanje i performanse uređaja](#logovanje-i-performanse-uređaja)
+		- [Kreiranje revizije nakon logout](#kreiranje-revizije-nakon-logout)
+		- [Uključivanje korišćenja CDN-a](#uključivanje-korišćenja-cdn-a)
+		- [Uključivanje korišćenja lokalnog ISDB keša](#uključivanje-korišćenja-lokalnog-isdb-keša)
+		- [Uključivanje automatske provere diska](#uključivanje-automatske-provere-diska)
+		- [Logovanje CLI komandi](#logovanje-cli-komandi)
+		- [Proširenje logovanja i prikaza logova](#proširenje-logovanja-i-prikaza-logova)
+		- [Uključivanje logovanja na disk](#uključivanje-logovanja-na-disk)
 
 ## Sistemska podešavanja
 
@@ -22,6 +59,14 @@ end
 Potrebno je uvek pratiti novosti PSIRT-a vezane za slabosti firmware verzija uređaja. Kada se pronađe slabost, potrebno je da se zakrpi u što kraćem vremenskom roku.
 
 [Technical Tip: Recommended release for FortiOS](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Recommended-release-for-FortiOS/ta-p/227178)
+
+### Gašenje opcije automatskog upgrade-a
+Za uređaje koji su vezani na FortiGate Cloud, podrazumevano podešavanje je automatski upgrade na najnoviju verziju firmware-a na istoj major verziji. Preporučuje se gašenje te opcije. 
+``` 
+config system fortiguard
+    set auto-firmware-upgrade disable
+end
+```
 
 ### Konfiguracija DNS servera
 Podrazumevana vrednost su FortiGuard DNS serveri. Preporuka je da se promene na interne DNS servere.
@@ -129,7 +174,7 @@ end
 ## Konfiguracija High-Availability(HA)
 Konfiguracija HA je u većini implementacija ista, ili slična, i postoje određene preporuke koje se retko primenjuju, a značajen su za rad cluster-a.
 
-Obradićemo jedino rešenje koje ima smisla u implementaciji FortiGate HA, a to je Active-Passive(A-P) mod rada.
+Obradićemo jedino rešenje koje ima smisla u implementaciji FortiGate HA, a to je **FortiGate Clustering Protocol(FGCP) Active-Passive(A-P)** mod rada.
 
 ### Incijalna konfiguracija HA
 Inicijalna konfiguracija za rad cluster-a može uvek biti ista.
@@ -162,10 +207,15 @@ end
 ```
 
 Preporučuje se da se **group ID definiše eksplicitno**. Kada je group ID isti za cluster u istoj mreži, može doći do problema u dupliciranim MAC address tabelama na svičevima preko kojih su vezani, čime izazivamo prekide produkcije.
+
 Preporučuje se da su monitor interfejsi **svi produkcioni interfejsi**.
+
 Preporučuje se da je prioritet primarnog uređaja veći od 128, što je podrazumevana vrednost prioriteta na FortiGate uređaju.
 
-### Repliciranje sesija
+Preporučena konfiguracija cluster-a je da se override opcija ugasi, gde se kontrola vrši pomoću uptime-a, gde ne želimo da prekidom uređaja dođe do duplog failover-a nakon što se povrati stanje primarnog uređaja.
+
+
+### Replikacija sesija
 Podrazumevana vrednost ne uključuje repliciranje sesija na sekundarni uređaj. Preporučuje se repliciranje svih TCP, UDP, SCTP i ICMP sesija.
 ```
 config system ha
@@ -177,9 +227,12 @@ end
 
 ### Failover kriterijumi
 Podrazumevani parametri failover-a su:
- - Pad HB linka -- Podrazumevano podešavanje
- - Pad napajanja primarnog uređaja -- Podrazumevano podešavanje
- - Prestanak rada SSD diska(opciono)
+
+- Pad HB linka -- Podrazumevano podešavanje
+
+- Pad napajanja primarnog uređaja -- Podrazumevano podešavanje
+
+- Prestanak rada SSD diska(opciono)
 	Kako bi se desio failover u cluster-u nakon prestanka rada SSD diska, potrebno je upaliti monitoring diska u HA procesu.
 	``` 
 	config system ha
@@ -187,7 +240,7 @@ Podrazumevani parametri failover-a su:
 	end
 	```
 
- - Previsoka memorija uređaja(opciono)
+- Previsoka memorija uređaja***(opciono)***
 	Kako bi se desio failover u cluster-u nakon previsoke memorije uređaja, potrebno je upaliti monitoring memorije u HA procesu. Preporuka je da se i kod manjih uređaja poveća limit sa conserve mod, dokle god je preporučena verzija za uređaje 7.4.x.
 	```
 	config system ha
@@ -202,7 +255,7 @@ Podrazumevani parametri failover-a su:
 	end
 	```
 
- - Pad interfejsa(opciono)
+- Pad interfejsa***(opciono)***
 	U slučaju pada produkcionih interfejsa na primarnoj jedinici, preporučuje se odrađivanje failover-a na sekundarni uređaj, u slučaju da je na tom uređaju interfejs dostupan.
 	```
 	config system ha
@@ -212,7 +265,7 @@ Podrazumevani parametri failover-a su:
 
 	Monitor interfejs može biti i fizički interfejs u agregaciji, pored toga se može i definisati minimalni broj monitoring interfejsa nakon čega dolazi do failover-a.
 
- - Monitor server(opciono)
+- Monitor server***(opciono)***
 	Kada monitoring interfejsa nije dovoljan, potrebno je testirati konekciju sa udaljenom IP adresom pomoću FortiGate link-monitor procesa. Potrebno je ugasiti opcije link monitora koje utiču na rutiranje.
 	``` 
 	config system link-monitor
@@ -235,10 +288,63 @@ Podrazumevani parametri failover-a su:
 	```
 
 	Podrazumevano podešavanje za protocol je 1(ICMP).
+	
 	Podrazumevano podešavanje za ```ping-server-flip-timeout``` je 0, failover se dešava kada se izgubi konekcija sa jednim monitor serverom. Uspomoć ```ha-priority``` i ```ping-server-flip-timeout``` možemo kontrolisati razlog failover-a.
 
+### Failover opcije
+U velikim okruženjima gde FortiGate razmenjuje velike količine ruta kroz dinamičke ruting protokole, može doći do loše replikacije ruta na sekundarni uređaj. U tom slučaju se preporučuje modifikovanje route parametara u okviru HA podešavanja.
+```
+config system ha
+	set route-hold 30
+	set route-wait 30
+	set route-ttl 0
+end
+```
 
-TAČKE: HB INTERVAL, PING SERVER, MONITOR I VLAN INTERFEJS, PAD SSD, ROUTE TTL, HA UPTIME DIFF, OVERRIDE, LINK-FAILED-SIGNAL
+Sa podrazumevanom konfiguracijom, tokom upgrade-a uređaja dolazi do 2 failover-a. U slučaju da je potreban što veći nivo timeout-a, ili se zahteva provera servisa na prvoj upgrade-ovanoj jedinici, moguće je konfigurisati da se failover sa sekundarne na primarnu jedinicu ne dogodi automatski. Sam upgrade proces se kontroliše komandom ```ha-uptime-diff-margin``` koja stopira failover loop proces prilikom reboot-a uređaja(ili restarta uptime-a). Podrazumevana vrednost je 15 minuta.
+```
+config system ha
+	set ha-uptime-diff-margin 60
+end
+```
+
+Neki svičevi ignorišu Gratitious ARP(GARP) pakete i ne promene ulaz u ARP tabeli prilikom failover-a. U tom slučaju se može uključiti opcija sa kojom bi uređaj prilikom failover-a odradio bounce interfejsa.
+```
+config system ha
+	set linked-failed-signal enable
+end
+```
+
+### Konfiguracija VDOM particija
+U slučaju da je potrebno kreirati cluster gde je za jedan VDOM primarni jedan firewall, za drugi VDOM drugi firewall, koristi se VDOM partitioning.
+
+Najčešći slučaj je podela VDOM-ova po lokaciji, gde u okviru dva datacentra postoji jedan FGCP cluster.
+```
+config system ha
+	set vcluster-status enable
+	config vcluster
+        edit 1
+            set override enable
+            set priority 200
+            set vdom "<IME-VDOM1>" "<IME-VDOM2>"
+        next
+        edit 2
+            set override enable
+            set priority 100
+            set vdom "<IME-VDOM3>" "<IME-VDOM4>"
+        next
+    end
+end
+```
+
+Kod geografski razdvojenih uređaja, preporučuje se i modifikacija heartbeat(HB) intervala.
+```
+config system ha
+	set hb-interval 5
+end
+```
+
+
 
 
 
@@ -284,7 +390,7 @@ config system interface
 end
 ```
 
-### Definisanje protoka na WAN linkovima
+### Definisanje protoka na WAN interfejsima
 ISP linkovi skoro uvek imaju niži protok od same brzine linka. Definisanjem brzine linka imamo tri benefita: dozvoljava statistiku na WAN linku preko FortiAnalyzer-a, potreban za rad nekih od SD-WAN modova i omogućava SD-WAN analitiku na FortiAnalyzer-u. 
 ```
 config system interface
@@ -294,7 +400,7 @@ config system interface
 end
 ```
 
-### Paljenje detekcije uređaja na značajnim interfejsima
+### Konfiguracija detekcije uređaja
 FortiGate ima opciju prikupljanja informacija o krajnjim uređajima tako što sluša saobraćaj na LAN linkovima i obrađuje je u jednom preglednom i značajnom prikazu.
 ```
 config system interface
@@ -313,7 +419,7 @@ Treba napomenuti da ova opcija na interfejsima sa većim opsezima
 ## Administratorski pristup
 
 
-### Konfiguracija password pravila
+### Konfiguracija password polise
 Od 7.6.5 je default password pravilo prebačeno na 12 karaktera, potrebno je na starijim verzijama ponašanje definisati kroz password polisu.
 
 U slučaju definisanja password polise, potrebno je promeniti password prilikom sledećeg pristupa uređaju.
@@ -387,7 +493,7 @@ config system accprofile
 end
 ```
 
-### Menjanje podrazumevanih menadžment portova
+### Modifikovanje podrazumevanih menadžment portova
 Napadači često traže vektor napada po predefinisanim setovima poznatih portova. Preporučuje se promena portova za menadžment pristup uređaju.
 ```
 config system global
@@ -405,7 +511,7 @@ config system global
 end
 ```
 
-### Povećavanje timeout-a nakon unosa pogrešne šifre administratora
+### Povećavanje timeout-a za administratorski pristup
 Podrazumevana vrednost je 60 sekundi. Preporučuje se povećanje timer-a na bar 5 minuta(300 sekundi)
 ``` 
 config system global
@@ -452,6 +558,13 @@ config system auto-install
 end
 ```
 
+### Gašenje FortiCloud SSO pristupa
+Preporučeno je gašenje FortiCloud SSO pristup zbog velikog broja verzija koje imaju slabost kroz ovaj tip pristupa.
+``` 
+config system global
+    set admin-forticloud-sso-login disable
+end
+```
 
 
 
@@ -459,15 +572,15 @@ end
 ## Logovanje i performanse uređaja
 
 
-### Create configuration revisions on logout
-Configuration revisions can be automatically created upon a logout. This can help with tracking down changes.
+### Kreiranje revizije nakon logout
+Preporučuje se paljenje opcije kreiranja revizije na FortiGate uređaju lokalno, ako ne postoji FortiManager ili lokalni repozitorijum sa automatski bekap uređaja. 
 ``` 
 config system global
     set revision-backup-on-logout enable
 end
 ```
 
-### Uključivanje korišćenja CDN-a za GUI performanse
+### Uključivanje korišćenja CDN-a
 Preporučena konfiguracija za korišćenje CDN-a za ubrzavanje GUI odziva. Podrazumevana konfiguracija je da je opcija upaljena, ali treba znati za nju.
 ``` 
 config system global
