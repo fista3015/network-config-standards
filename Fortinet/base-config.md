@@ -126,6 +126,122 @@ end
 
 
 
+## Konfiguracija High-Availability(HA)
+Konfiguracija HA je u većini implementacija ista, ili slična, i postoje određene preporuke koje se retko primenjuju, a značajen su za rad cluster-a.
+
+Obradićemo jedino rešenje koje ima smisla u implementaciji FortiGate HA, a to je Active-Passive(A-P) mod rada.
+
+### Incijalna konfiguracija HA
+Inicijalna konfiguracija za rad cluster-a može uvek biti ista.
+
+Konfiguracija primarnog HA uređaja:
+```
+config system ha
+	set group-id <HA-ID>
+	set group-name <HA-IME>
+	set mode a-p
+	set password <HA-ŠIFRA>
+	set hbdev <HA-HB-IME-INTERFEJSA1> 150 <HA-HB-IME-INTERFEJSA2> 100
+	set override disable
+	set monitor <IME-INTERFEJSA>
+	set priority 150
+end
+```
+
+Konfiguracija sekundarnog HA uređaja:
+```
+config system ha
+	set group-id <HA-ID>
+	set group-name <HA-IME>
+	set mode a-p
+	set password <HA-ŠIFRA>
+	set hbdev <HA-HB-IME-INTERFEJSA1> 150 <HA-HB-IME-INTERFEJSA2> 100
+	set override disable
+	set priority 100
+end
+```
+
+Preporučuje se da se **group ID definiše eksplicitno**. Kada je group ID isti za cluster u istoj mreži, može doći do problema u dupliciranim MAC address tabelama na svičevima preko kojih su vezani, čime izazivamo prekide produkcije.
+Preporučuje se da su monitor interfejsi **svi produkcioni interfejsi**.
+Preporučuje se da je prioritet primarnog uređaja veći od 128, što je podrazumevana vrednost prioriteta na FortiGate uređaju.
+
+### Repliciranje sesija
+Podrazumevana vrednost ne uključuje repliciranje sesija na sekundarni uređaj. Preporučuje se repliciranje svih TCP, UDP, SCTP i ICMP sesija.
+```
+config system ha
+    set session-pickup enable
+    set session-pickup-connectionless enable
+    set session-pickup-expectation enable
+end
+```
+
+### Failover kriterijumi
+Podrazumevani parametri failover-a su:
+ - Pad HB linka -- Podrazumevano podešavanje
+ - Pad napajanja primarnog uređaja -- Podrazumevano podešavanje
+ - Prestanak rada SSD diska(opciono)
+	Kako bi se desio failover u cluster-u nakon prestanka rada SSD diska, potrebno je upaliti monitoring diska u HA procesu.
+	``` 
+	config system ha
+		set ssd-failover enable
+	end
+	```
+
+ - Previsoka memorija uređaja(opciono)
+	Kako bi se desio failover u cluster-u nakon previsoke memorije uređaja, potrebno je upaliti monitoring memorije u HA procesu. Preporuka je da se i kod manjih uređaja poveća limit sa conserve mod, dokle god je preporučena verzija za uređaje 7.4.x.
+	```
+	config system ha
+		set memory-based-failover enable
+		set memory-failover-threshold 92
+		set memory-failover-flip-timeout 60
+	end
+	config system global
+		set memory-use-threshold-red 94
+		set memory-use-threshold-green 90
+		set memory-use-threshold-extreme 97
+	end
+	```
+
+ - Pad interfejsa(opciono)
+	U slučaju pada produkcionih interfejsa na primarnoj jedinici, preporučuje se odrađivanje failover-a na sekundarni uređaj, u slučaju da je na tom uređaju interfejs dostupan.
+	```
+	config system ha
+		set monitor <IME-INTERFEJSA1> <IME-INTERFEJSA2>
+	end
+	```
+
+	Monitor interfejs može biti i fizički interfejs u agregaciji, pored toga se može i definisati minimalni broj monitoring interfejsa nakon čega dolazi do failover-a.
+
+ - Monitor server(opciono)
+	Kada monitoring interfejsa nije dovoljan, potrebno je testirati konekciju sa udaljenom IP adresom pomoću FortiGate link-monitor procesa. Potrebno je ugasiti opcije link monitora koje utiču na rutiranje.
+	``` 
+	config system link-monitor
+		edit "<IME-LINK-MONITORA>"  
+			set srcintf <IME-IZLAZNOG-INTERFEJSA>  
+			set server <IP-ADRESA-SERVERA1> <IP-ADRESA-SERVERA1>
+			set protocol <PORT-SERVERA>  
+			set ha-priority <PRIORITET-LINKA>  
+			set update-cascade-interface disable
+			set update-static-route disable
+			set update-policy-route disable
+		next
+	end
+	config system ha
+		set pingserver-monitor-interface <IME-IZLAZNOG-INTERFEJSA>  
+		set pingserver-failover-threshold <FAILOVER-PRIORITET>  
+		set pingserver-flip-timeout <VREME-FAILOVER>  
+		set pingserver-secondary-force-reset disable
+	end
+	```
+
+	Podrazumevano podešavanje za protocol je 1(ICMP).
+	Podrazumevano podešavanje za ```ping-server-flip-timeout``` je 0, failover se dešava kada se izgubi konekcija sa jednim monitor serverom. Uspomoć ```ha-priority``` i ```ping-server-flip-timeout``` možemo kontrolisati razlog failover-a.
+
+
+TAČKE: HB INTERVAL, PING SERVER, MONITOR I VLAN INTERFEJS, PAD SSD, ROUTE TTL, HA UPTIME DIFF, OVERRIDE, LINK-FAILED-SIGNAL
+
+
+
 ## Podešavanja interfejsa
 
 
@@ -382,8 +498,6 @@ config system global
     set cli-audit-log enable
 end
 ```
-
-The usage can be checked using the “Interface Bandwidth” widget on the Dashboard.
 
 ### Proširenje logovanja i prikaza logova
 Podrazumevana podešavanja ne loguju implicit deny pravila, local-in i local-out saobraćaj, dodatno logovanje, razrešavanje IP adresa i portova, API akcije i mapiranje imena zona.
