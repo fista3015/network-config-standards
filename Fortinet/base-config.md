@@ -1,6 +1,6 @@
 # FortiGate baseline konfiguracija prilikom inicijalizacije uređaja
 
-Baseline konfiguracija FortiGate firewall uređaja prilikom inicijalizacije uređaja pre implementacije u produkciono okruženje.
+Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pre implementacije u produkciono okruženje.
 
 - [Početak dokumenta](#fortigate-baseline-konfiguracija-prilikom-inicijalizacije-uređaja)
 	- [Sistemska podešavanja](#sistemska-podešavanja)
@@ -16,14 +16,14 @@ Baseline konfiguracija FortiGate firewall uređaja prilikom inicijalizacije ure�
 		- [Failover kriterijumi](#failover-kriterijumi)
 		- [Failover opcije](#failover-opcije)
 		- [Konfiguracija VDOM particija](#konfiguracija-vdom-particija)
-	- [Podešavanja intefejsa](#podešavanja-interfejsa)
+	- [Podešavanja interfejsa](#podešavanja-interfejsa)
 		- [Blokiranje intra-zone saobraćaja](#blokiranje-intra-zone-saobraćaja)
 		- [Gašenje nekorišćenih interfejsa](#gašenje-nekorišćenih-interfejsa)
 		- [Brisanje nekorišćenih DHCP servera](#brisanje-nekorišćenih-dhcp-servera)
 		- [Gašenje menadžment servisa na svim interfejsima koji nisu za menadžment](#gašenje-menadžment-servisa-na-svim-interfejsima-koji-nisu-za-menadžment)
 		- [Definisanje protoka na WAN interfejsima](#definisanje-protoka-na-wan-interfejsima)
 		- [Konfiguracija detekcije uređaja](#konfiguracija-detekcije-uređaja)
-	- [Administatorski pristup](#administratorski-pristup)
+	- [Administratorski pristup](#administratorski-pristup)
 		- [Konfiguracija password polise](#konfiguracija-password-polise)
 		- [Konfiguracija administratora](#konfiguracija-administratora)
 		- [Konfiguracija Multi-Factor Authentication(MFA) za administratora](#konfiguracija-multi-factor-authentication(MFA)-za-administratora)
@@ -48,7 +48,7 @@ Baseline konfiguracija FortiGate firewall uređaja prilikom inicijalizacije ure�
 ## Sistemska podešavanja
 
 ### Podešavanja imena uređaja
-Podrazumevana konfiguracija je da je ime uređaja serijski broj. Preporučuje se podešavanje imena bez space-a sa donjom crtom i crticom.
+Podrazumevana konfiguracija je da je ime uređaja serijski broj. Preporučuje se podešavanje imena bez razmaka sa donjom crtom(_) i crticom(-).
 ```
 config system global
 	set hostname <IME-UREĐAJA>
@@ -77,7 +77,7 @@ U slučaju da ne postoji interni DNS server, preporuka je korišćenje javnog Ci
 208.67.220.220
 ``` 
 
-Pored toga, preporučuje se promena DNS protokola, najčešće je u pitanju DNS UDP-TCP/53, odnosno cleartext DNS.
+Pored toga, preporučuje se promena DNS protokola, najčešće je u pitanju DNS preko UDP/TCP porta 53, odnosno cleartext DNS.
 ``` 
 config system dns
     set primary <IP-DNS-PRIMARNI>  
@@ -131,13 +131,13 @@ execute time <HH:MM:SS>
 ```
 
 ### Konfiguracija SNMP servera
-Najsigurniji SNMP protokol u ovom trenutku je SNMP verzija 3. Međutim, zbog kompleksnosti implementacije polling-a, je razumljivo korišćenje SNMP verzije 2.
+Najsigurniji SNMP protokol u ovom trenutku je SNMP verzija 3. Međutim, zbog kompleksnosti implementacije polling-a razumljivo je korišćenje SNMP verzije 2.
 
 Svakako, lakši segment konfiguracije je SNMP traps u okviru verzije 3 na koji se fokusiramo ispod.
 ```
 config system snmp sysinfo
 	set status enable
-	set desciption "<IME-UREĐAJA>"
+	set description "<IME-UREĐAJA>"
 	set contact-info "<MEJL-ADMINISTRATORA>"
 	set location "<IME-LOKACIJE>"
 config system snmp user
@@ -172,11 +172,11 @@ end
 
 
 ## Konfiguracija High-Availability(HA)
-Konfiguracija HA je u većini implementacija ista, ili slična, i postoje određene preporuke koje se retko primenjuju, a značajen su za rad cluster-a.
+Konfiguracija HA je u većini implementacija ista, ili slična, i postoje određene preporuke koje se retko primenjuju, a značajni su za rad cluster-a.
 
 Obradićemo jedino rešenje koje ima smisla u implementaciji FortiGate HA, a to je **FortiGate Clustering Protocol(FGCP) Active-Passive(A-P)** mod rada.
 
-### Incijalna konfiguracija HA
+### Inicijalna konfiguracija HA
 Inicijalna konfiguracija za rad cluster-a može uvek biti ista.
 
 Konfiguracija primarnog HA uređaja:
