@@ -172,12 +172,12 @@ end
 
 
 ## Konfiguracija High-Availability(HA)
-Konfiguracija HA je u većini implementacija ista, ili slična, i postoje određene preporuke koje se retko primenjuju, a značajni su za rad cluster-a.
+Konfiguracija HA je u većini implementacija ista, ili slična, i postoje određene preporuke koje se retko primenjuju, a značajni su za rad klastera.
 
 Obradićemo jedino rešenje koje ima smisla u implementaciji FortiGate HA, a to je **FortiGate Clustering Protocol(FGCP) Active-Passive(A-P)** mod rada.
 
 ### Inicijalna konfiguracija HA
-Inicijalna konfiguracija za rad cluster-a može uvek biti ista.
+Inicijalna konfiguracija za rad klastera može uvek biti ista.
 
 Konfiguracija primarnog HA uređaja:
 ```
@@ -206,13 +206,13 @@ config system ha
 end
 ```
 
-Preporučuje se da se **group ID definiše eksplicitno**. Kada je group ID isti za cluster u istoj mreži, može doći do problema u dupliciranim MAC address tabelama na svičevima preko kojih su vezani, čime izazivamo prekide produkcije.
+Preporučuje se da se **group ID definiše eksplicitno**. Kada je group ID isti za klaster u istoj mreži, može doći do problema u dupliranim MAC address tabelama na svičevima preko kojih su vezani, čime izazivamo prekide produkcije.
 
-Preporučuje se da su monitor interfejsi **svi produkcioni interfejsi**.
+Preporučuje se da su **svi produkcioni interfejsi** monitor interfejsi.
 
 Preporučuje se da je prioritet primarnog uređaja veći od 128, što je podrazumevana vrednost prioriteta na FortiGate uređaju.
 
-Preporučena konfiguracija cluster-a je da se override opcija ugasi, gde se kontrola vrši pomoću uptime-a, gde ne želimo da prekidom uređaja dođe do duplog failover-a nakon što se povrati stanje primarnog uređaja.
+Preporučena konfiguracija klastera je da se override opcija onemogući, gde se kontrola vrši pomoću uptime-a, gde ne želimo da prekidom uređaja dođe do duplog failover-a nakon što se povrati stanje primarnog uređaja.
 
 
 ### Replikacija sesija
@@ -233,15 +233,15 @@ Podrazumevani parametri failover-a su:
 - Pad napajanja primarnog uređaja -- Podrazumevano podešavanje
 
 - Prestanak rada SSD diska(opciono)
-	Kako bi se desio failover u cluster-u nakon prestanka rada SSD diska, potrebno je upaliti monitoring diska u HA procesu.
+	Kako bi se desio failover u klasteru nakon prestanka rada SSD diska, potrebno je upaliti monitoring diska u HA procesu.
 	``` 
 	config system ha
 		set ssd-failover enable
 	end
 	```
 
-- Previsoka memorija uređaja***(opciono)***
-	Kako bi se desio failover u cluster-u nakon previsoke memorije uređaja, potrebno je upaliti monitoring memorije u HA procesu. Preporuka je da se i kod manjih uređaja poveća limit sa conserve mod, dokle god je preporučena verzija za uređaje 7.4.x.
+- Visoka iskorišćenost memorije uređaja***(opciono)***
+	Kako bi se desio failover u klasteru nakon previsoke memorije uređaja, potrebno je upaliti monitoring memorije u HA procesu. Preporuka je da se i kod manjih uređaja poveća limit sa conserve mod, dokle god je preporučena verzija za uređaje 7.4.x.
 	```
 	config system ha
 		set memory-based-failover enable
@@ -287,9 +287,9 @@ Podrazumevani parametri failover-a su:
 	end
 	```
 
-	Podrazumevano podešavanje za protocol je 1(ICMP).
+	Podrazumevana vrednost za protocol je 1(ICMP).
 	
-	Podrazumevano podešavanje za ```ping-server-flip-timeout``` je 0, failover se dešava kada se izgubi konekcija sa jednim monitor serverom. Uspomoć ```ha-priority``` i ```ping-server-flip-timeout``` možemo kontrolisati razlog failover-a.
+	Podrazumevano podešavanje za ```ping-server-flip-timeout``` je 0, failover se dešava kada se izgubi konekcija sa jednim monitor serverom. Uz pomoć ```ha-priority``` i ```ping-server-flip-timeout``` možemo kontrolisati razlog failover-a.
 
 ### Failover opcije
 U velikim okruženjima gde FortiGate razmenjuje velike količine ruta kroz dinamičke ruting protokole, može doći do loše replikacije ruta na sekundarni uređaj. U tom slučaju se preporučuje modifikovanje route parametara u okviru HA podešavanja.
@@ -308,7 +308,7 @@ config system ha
 end
 ```
 
-Neki svičevi ignorišu Gratitious ARP(GARP) pakete i ne promene ulaz u ARP tabeli prilikom failover-a. U tom slučaju se može uključiti opcija sa kojom bi uređaj prilikom failover-a odradio bounce interfejsa.
+Neki svičevi ignorišu Gratuitious ARP(GARP) pakete i ne promene ulaz u ARP tabeli prilikom failover-a. U tom slučaju se može uključiti opcija sa kojom bi uređaj prilikom failover-a odradio bounce interfejsa.
 ```
 config system ha
 	set linked-failed-signal enable
@@ -316,13 +316,13 @@ end
 ```
 
 ### Konfiguracija VDOM particija
-U slučaju da je potrebno kreirati cluster gde je za jedan VDOM primarni jedan firewall, za drugi VDOM drugi firewall, koristi se VDOM partitioning.
+U slučaju da je potrebno kreirati klaster gde je za jedan VDOM primarni jedan firewall, za drugi VDOM drugi firewall, koristi se VDOM partitioning.
 
-Najčešći slučaj je podela VDOM-ova po lokaciji, gde u okviru dva datacentra postoji jedan FGCP cluster.
+Najčešći slučaj je podela VDOM-ova po lokaciji, gde u okviru dva datacentra postoji jedan FGCP klaster.
 ```
 config system ha
-	set vcluster-status enable
-	config vcluster
+	set vklasterstatus enable
+	config vklaster
         edit 1
             set override enable
             set priority 200
@@ -352,7 +352,7 @@ end
 
 
 ### Blokiranje intra-zone saobraćaja
-FortiGate ne mora biti, ali bi ga trebalo konfigurisati kao zone-based firewall. Kada se definišu zonu, potrebno je konfigurisati intra-zone blokiranje pravila, gde bi u okviru firewall polise definisali propuštanja po potrebi.
+FortiGate ne mora biti, ali bi ga trebalo konfigurisati kao zone-based firewall. Kada se definišu zone, potrebno je konfigurisati intra-zone blokiranje pravila, gde bi u okviru firewall polise definisali propuštanja po potrebi.
 ```
 config system zone
     edit <IME-ZONE> 
@@ -373,7 +373,7 @@ end
 ```
 
 ### Brisanje nekorišćenih DHCP servera
-Većina manjih uređaja dolaze sa prekonfigurisanim DHCP serverom za FortiLink Subinterfejse(i eventualno hardverski svič). S obzirom da nije preporuka koristiti njih, potrebno ih je izbrisati.
+Većina manjih uređaja dolaze sa unapred konfigurisanim DHCP serverom za FortiLink Subinterfejse(i eventualno hardverski svič). S obzirom da nije preporuka koristiti njih, potrebno ih je izbrisati.
 ```
 config system dhcp server
 	delete <ID-DHCP-SERVERA>
@@ -401,7 +401,7 @@ end
 ```
 
 ### Konfiguracija detekcije uređaja
-FortiGate ima opciju prikupljanja informacija o krajnjim uređajima tako što sluša saobraćaj na LAN linkovima i obrađuje je u jednom preglednom i značajnom prikazu.
+FortiGate ima opciju prikupljanja informacija o krajnjim uređajima tako što sluša saobraćaj na LAN linkovima i obrađuje ga u jednom preglednom i značajnom prikazu.
 ```
 config system interface
     edit "<IME-INTERFEJSA>"  
@@ -410,7 +410,7 @@ config system interface
 end
 ```
 
-Treba napomenuti da ova opcija na interfejsima sa većim opsezima
+Treba napomenuti da ova opcija na interfejsima sa većim opsezima može povećati opterećenje uređaja.
 
 
 
@@ -420,7 +420,7 @@ Treba napomenuti da ova opcija na interfejsima sa većim opsezima
 
 
 ### Konfiguracija password polise
-Od 7.6.5 je default password pravilo prebačeno na 12 karaktera, potrebno je na starijim verzijama ponašanje definisati kroz password polisu.
+Od verzije 7.6.5 podrazumevano pravilo za šifre postavljeno je na minimum 12 karaktera, dok je na starijim verzijama potrebno definisati ponašanje kroz password polisu.
 
 U slučaju definisanja password polise, potrebno je promeniti password prilikom sledećeg pristupa uređaju.
 ``` 
@@ -436,7 +436,7 @@ end
 ```
 
 ### Konfiguracija administratora
-Zaprepašćujući broj korisnika ne briše podrazumevanog korisnika koji se koristi tokom inicijalizacije uređaja. Potrebno je u svakoj implementaciji izbrisati podrazumevanog korisnika, kao i definisati IP adrese preko kojeg administratori mogu pristupiti uređaju.
+Zaprepašćujući broj korisnika ne briše podrazumevanog korisnika koji se koristi tokom inicijalizacije uređaja. Potrebno je u svakoj implementaciji izbrisati podrazumevanog korisnika, kao i definisati IP adrese preko kojih administratori mogu pristupiti uređaju.
 ```
 config system admin
 	delete admin
@@ -466,7 +466,7 @@ end
 ### Konfiguracija break-glass administratora
 Preporuka je da za svaki korisnički nalog postoji MFA konfiguracija. U tom slučaju je dobra praksa imati jedan rezervni nalog u slučaju pada MFA servisa. 
 
-Taj nalog se konfiguriše sa pristupom sa određenih IP adresa(ili samo konzolno) i sa kompleksnom IP adresom sa visokim brojem karaktera(32 ili više). Ispod možete naći primer konfiguracije administratora za break-glass pristup samo preko konzole.
+Taj nalog se konfiguriše sa pristupom sa određenih IP adresa(ili samo konzolno) i sa kompleksnom šifrom sa visokim brojem karaktera(32 ili više). Ispod možete naći primer konfiguracije administratora za break-glass pristup samo preko konzole.
 ```
 config system admin
 	edit "<IME-ADMINISTRATORA>"
@@ -484,7 +484,7 @@ Preporučuje se kreiranje novih administratorskih profila sa nivoem pristupa po 
 Jedan primer pravilnog limitiranja pristupa postoji u našem CT Cloud-u, gde se za određenog korisnika dopušta pristup CyberStellar alatu koji dinamički upisuje blacklist-ovane IP adrese kroz adresne objekte u postojeću adresnu grupu koja se koristi u firewall pravilu.
 ```
 config system accprofile
-    edit "<IME-ADMINISTRATORSKOG-PROFILA"
+    edit "<IME-ADMINISTRATORSKOG-PROFILA>"
         set fwgrp custom
         config fwgrp-permission
             set address read-write
@@ -512,7 +512,7 @@ end
 ```
 
 ### Povećavanje timeout-a za administratorski pristup
-Podrazumevana vrednost je 60 sekundi. Preporučuje se povećanje timer-a na bar 5 minuta(300 sekundi)
+Podrazumevana vrednost je 60 sekundi. Preporučuje se povećanje vremena zaključanja na bar 5 minuta(300 sekundi)
 ``` 
 config system global
     set admin-lockout-duration 600
@@ -559,7 +559,7 @@ end
 ```
 
 ### Gašenje FortiCloud SSO pristupa
-Preporučeno je gašenje FortiCloud SSO pristup zbog velikog broja verzija koje imaju slabost kroz ovaj tip pristupa.
+Preporučeno je gašenje FortiCloud SSO pristupa zbog velikog broja verzija koje imaju slabost kroz ovaj tip pristupa.
 ``` 
 config system global
     set admin-forticloud-sso-login disable
@@ -605,7 +605,7 @@ end
 ```
 
 ### Logovanje CLI komandi
-Podrazumevanim podešavanjima FortiGate ne loguje CLI komande.
+Podrazumevano, FortiGate ne loguje CLI komande.
 ``` 
 config system global
     set cli-audit-log enable
@@ -635,7 +635,7 @@ end
 ```
 
 ### Uključivanje logovanja na disk
-FortiGate sa diskom bi trebao da loguje saobraćaj na disk, sa time da kada se popuni disk, brisanje kreće od najstarijih ka novijim logovima.
+FortiGate sa diskom bi trebalo da loguje saobraćaj na disk, sa time da kada se popuni disk, brisanje kreće od najstarijih ka novijim logovima.
 ``` 
 config log disk setting
     set status enable
