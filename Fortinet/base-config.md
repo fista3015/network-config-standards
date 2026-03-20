@@ -270,7 +270,7 @@ end
 ### Failover kriterijumi
 Podrazumevani parametri failover-a su:
 
-- Pad HB linka -- Podrazumevano podešavanje
+- Pad heartbeat(HB) linka -- Podrazumevano podešavanje
 
 - Pad napajanja primarnog uređaja -- Podrazumevano podešavanje
 
@@ -282,7 +282,7 @@ Podrazumevani parametri failover-a su:
 	end
 	```
 
-- Visoka iskorišćenost memorije uređaja***(opciono)***
+- Visoka iskorišćenost memorije uređaja*(opciono)*
 	Kako bi se desio failover u klasteru nakon previsoke memorije uređaja, potrebno je upaliti monitoring memorije u HA procesu. Preporuka je da se i kod manjih uređaja poveća limit sa conserve mod, dokle god je preporučena verzija za uređaje 7.4.x.
 	```
 	config system ha
@@ -299,7 +299,7 @@ Podrazumevani parametri failover-a su:
 
 [Technical Tip: FortiGate HA failover due to memory utilization](https://community.fortinet.com/t5/FortiGate/Technical-Tip-FortiGate-HA-failover-due-to-memory-utilization/ta-p/195019)
 
-- Pad interfejsa***(opciono)***
+- Pad interfejsa*(opciono)*
 	U slučaju pada produkcionih interfejsa na primarnoj jedinici, preporučuje se odrađivanje failover-a na sekundarni uređaj, u slučaju da je na tom uređaju interfejs dostupan.
 	```
 	config system ha
@@ -309,7 +309,7 @@ Podrazumevani parametri failover-a su:
 
 	Monitor interfejs može biti i fizički interfejs u agregaciji, pored toga se može i definisati minimalni broj monitoring interfejsa nakon čega dolazi do failover-a.
 
-- Monitor server***(opciono)***
+- Monitor server*(opciono)*
 	Kada monitoring interfejsa nije dovoljan, potrebno je testirati konekciju sa udaljenom IP adresom pomoću FortiGate link-monitor procesa. Potrebno je ugasiti opcije link monitora koje utiču na rutiranje.
 	``` 
 	config system link-monitor
@@ -389,7 +389,7 @@ config system ha
 end
 ```
 
-Kod geografski razdvojenih uređaja, preporučuje se i modifikacija heartbeat(HB) intervala.
+Kod geografski razdvojenih uređaja, preporučuje se i modifikacija HB intervala.
 ```
 config system ha
 	set hb-interval 5
