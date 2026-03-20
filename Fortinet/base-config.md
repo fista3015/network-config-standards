@@ -265,6 +265,7 @@ config system ha
 end
 ```
 
+[Technical Tip: HA session failover (session pickup) ](https://community.fortinet.com/t5/FortiGate/Technical-Tip-HA-session-failover-session-pickup/ta-p/191165)
 
 ### Failover kriterijumi
 Podrazumevani parametri failover-a su:
@@ -295,6 +296,8 @@ Podrazumevani parametri failover-a su:
 		set memory-use-threshold-extreme 97
 	end
 	```
+
+[Technical Tip: FortiGate HA failover due to memory utilization](https://community.fortinet.com/t5/FortiGate/Technical-Tip-FortiGate-HA-failover-due-to-memory-utilization/ta-p/195019)
 
 - Pad interfejsa***(opciono)***
 	U slučaju pada produkcionih interfejsa na primarnoj jedinici, preporučuje se odrađivanje failover-a na sekundarni uređaj, u slučaju da je na tom uređaju interfejs dostupan.
@@ -332,6 +335,8 @@ Podrazumevani parametri failover-a su:
 	
 	Podrazumevano podešavanje za ```ping-server-flip-timeout``` je 0, failover se dešava kada se izgubi konekcija sa jednim monitor serverom. Uz pomoć ```ha-priority``` i ```ping-server-flip-timeout``` možemo kontrolisati razlog failover-a.
 
+[Technical Tip: Combining remote link monitoring with a high availability FGCP cluster](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Combining-remote-link-monitoring-with-a-high/ta-p/191330)
+
 
 ### Failover opcije
 U velikim okruženjima gde FortiGate razmenjuje velike količine ruta kroz dinamičke ruting protokole, može doći do loše replikacije ruta na sekundarni uređaj. U tom slučaju se preporučuje modifikovanje route parametara u okviru HA podešavanja.
@@ -343,12 +348,16 @@ config system ha
 end
 ```
 
+[Technical Tip: Controlling how HA synchronizes routing table updates](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Controlling-how-HA-synchronizes-routing-table/ta-p/191310)
+
 Sa podrazumevanom konfiguracijom, tokom upgrade-a uređaja dolazi do 2 failover-a. U slučaju da je potreban što veći nivo timeout-a, ili se zahteva provera servisa na prvoj upgrade-ovanoj jedinici, moguće je konfigurisati da se failover sa sekundarne na primarnu jedinicu ne dogodi automatski. Sam upgrade proces se kontroliše komandom ```ha-uptime-diff-margin``` koja stopira failover loop proces prilikom reboot-a uređaja(ili restarta uptime-a). Podrazumevana vrednost je 15 minuta.
 ```
 config system ha
 	set ha-uptime-diff-margin 60
 end
 ```
+
+[Technical Tip: HA age time difference (HA cluster uptime)](https://community.fortinet.com/t5/FortiGate/Technical-Tip-HA-age-time-difference-HA-cluster-uptime/ta-p/230805)
 
 Neki svičevi ignorišu Gratuitious ARP(GARP) pakete i ne promene ulaz u ARP tabeli prilikom failover-a. U tom slučaju se može uključiti opcija sa kojom bi uređaj prilikom failover-a odradio bounce interfejsa.
 ```
@@ -387,6 +396,8 @@ config system ha
 end
 ```
 
+[Technical Tip: Configuring HA virtual cluster with VDOM Partitioning](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Configuring-HA-virtual-cluster-with-VDOM/ta-p/268820)
+
 
 
 
@@ -403,6 +414,8 @@ config system zone
     next
 end
 ```
+
+[Technical Tip: Block or allow intra-zone traffic](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Block-or-allow-intra-zone-traffic/ta-p/279733)
 
 
 ### Gašenje nekorišćenih interfejsa
@@ -460,6 +473,8 @@ end
 
 Treba napomenuti da ova opcija na interfejsima sa većim opsezima može povećati opterećenje uređaja.
 
+[Technical Tip: Enable 'Device Detection' to allow FortiOS to monitor networks](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Enable-Device-Detection-to-allow-FortiOS-to/ta-p/190901)
+
 
 
 
@@ -512,6 +527,9 @@ config system admin
 	next
 end
 ```
+
+Primer za SAML SSO sa Microsoft Entra ID možete naći ispod:
+[Technical Tip: Configuring SAML SSO login for FortiGate administrators with Entra ID acting as SAML IdP](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Configuring-SAML-SSO-login-for-FortiGate/ta-p/194656)
 
 
 ### Konfiguracija break-glass administratora
@@ -615,6 +633,8 @@ config system auto-install
 end
 ```
 
+[Technical Tip: Automatic installation of Firmware and system configuration](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Automatic-installation-of-Firmware-and-system/ta-p/197938)
+
 
 ### Gašenje FortiCloud SSO pristupa
 Preporučeno je gašenje FortiCloud SSO pristupa zbog velikog broja verzija koje imaju slabost kroz ovaj tip pristupa.
@@ -623,6 +643,8 @@ config system global
     set admin-forticloud-sso-login disable
 end
 ```
+
+[Technical Tip: Understanding the FortiOS critical vulnerability (FG-IR-25-647, FG-IR-26-060) upgrade prompt in GUI](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Understanding-the-FortiOS-critical-vulnerability/ta-p/426944)
 
 
 
@@ -647,6 +669,8 @@ config system global
     set gui-cdn-usage enable
 end
 ```
+
+[Loading artifacts from a CDN for improved GUI performance](https://docs.fortinet.com/document/fortigate/7.0.0/new-features/205105/loading-artifacts-from-a-cdn-for-improved-gui-performance-7-0-4)
 
 
 ### Uključivanje korišćenja lokalnog ISDB keša
@@ -674,6 +698,8 @@ config system global
     set cli-audit-log enable
 end
 ```
+
+[Technical Tip: Enable audit log via CLI](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Enable-audit-log-via-CLI/ta-p/266822)
 
 
 ### Proširenje logovanja i prikaza logova
@@ -707,3 +733,5 @@ config log disk setting
     set maximum-log-age 0
 end
 ```
+
+[Technical Tip: How to configure logging to disk on the FortiGate using the GUI or the CLI](https://community.fortinet.com/t5/FortiGate/Technical-Tip-How-to-configure-logging-to-disk-on-the-FortiGate/ta-p/216995)
