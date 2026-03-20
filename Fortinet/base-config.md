@@ -200,11 +200,11 @@ end
 
 Komanda ```dedicated-to``` dedicira menadžment interfejs, posle čega se on ne može referencirati u pravilima.
 
-[Technical Tip: FortiGate dedicated-mgmt feature, or Out-of-band Management](https://community.fortinet.com/t5/FortiGate/Technical-Tip-FortiGate-dedicated-mgmt-feature-or-Out-of-band/ta-p/193699).
+[Technical Tip: FortiGate dedicated-mgmt feature, or Out-of-band Management](https://community.fortinet.com/t5/FortiGate/Technical-Tip-FortiGate-dedicated-mgmt-feature-or-Out-of-band/ta-p/193699)
 
 Komandom ```management-ip``` definišemo jedinstvenu IP adresu za obe jedinice, koja se može koristiti i na menadžment, i na servisnom interfejsu(ne preporučuje se).
 
-[Technical Tip: Implement independent Management IP for HA Cluster] https://community.fortinet.com/t5/FortiGate/Technical-Tip-Implement-independent-Management-IP-for-HA-Cluster/ta-p/224671).
+[Technical Tip: Implement independent Management IP for HA Cluster](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Implement-independent-Management-IP-for-HA-Cluster/ta-p/224671)
 
 
 
