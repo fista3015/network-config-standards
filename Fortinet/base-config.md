@@ -12,6 +12,7 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 		- [Konfiguracija DNS servera](#konfiguracija-dns-servera)
 		- [Konfiguracija NTP servera](#konfiguracija-ntp-servera)
 		- [Konfiguracija SNMP servera](#konfiguracija-snmp-servera)
+		- [FortiGate HA menadžment interfejs](#fortigate-ha-menadžment-interfejs)
 	- [Konfiguracija High-Availability(HA)](#konfiguracija-high-availability(HA))
 		- [Inicijalna konfiguracija HA](#inicijalna-konfiguracija-ha)
 		- [Replikacija sesija](#replikacija-sesija)
@@ -49,6 +50,7 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 
 ## Sistemska podešavanja
 
+
 ### Podešavanja imena uređaja
 Podrazumevana konfiguracija je da je ime uređaja serijski broj. Preporučuje se podešavanje imena bez razmaka sa donjom crtom(_) i crticom(-).
 ```
@@ -57,10 +59,12 @@ config system global
 end
 ```
 
+
 ### Upgrade firewall uređaja
 Potrebno je uvek pratiti novosti PSIRT-a vezane za slabosti firmware verzija uređaja. Kada se pronađe slabost, potrebno je da se zakrpi u što kraćem vremenskom roku.
 
 [Technical Tip: Recommended release for FortiOS](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Recommended-release-for-FortiOS/ta-p/227178)
+
 
 ### Gašenje opcije automatskog upgrade-a
 Za uređaje koji su vezani na FortiGate Cloud, podrazumevano podešavanje je automatski upgrade na najnoviju verziju firmware-a na istoj major verziji. Preporučuje se gašenje te opcije. 
@@ -69,6 +73,9 @@ config system fortiguard
     set auto-firmware-upgrade disable
 end
 ```
+
+[Technical Tip: Understanding automatic patch upgrade](https://community.fortinet.com/t5/FortiGate-Cloud/Technical-Tip-Understanding-automatic-patch-upgrade-FortiGate/ta-p/316549)
+
 
 ### Konfiguracija DNS servera
 Podrazumevana vrednost su FortiGuard DNS serveri. Preporuka je da se promene na interne DNS servere.
@@ -87,6 +94,10 @@ config system dns
     set protocol cleartext 
 end
 ```
+
+U slučaju da je to potrebno, FortiGate može biti DNS server:
+[Administration Guide: FortiGate DNS server](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/960561/fortigate-dns-server)
+
 
 ### Konfiguracija NTP servera
 Podrazumevana vrednost su FortiGuard NTP serveri. Preporuka je da se promene na interne servere sa definisanim NTP servisom.
@@ -132,6 +143,10 @@ execute date <YYYY-MM-DD>
 execute time <HH:MM:SS>  
 ```
 
+U slučaju da je to potrebno, FortiGate može biti NTP server:
+[Administration Guide: FortiGate DNS server](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Setting-up-an-NTP-server-and-an-NTP-client-using/ta-p/302556)
+
+
 ### Konfiguracija SNMP servera
 Najsigurniji SNMP protokol u ovom trenutku je SNMP verzija 3. Međutim, zbog kompleksnosti implementacije polling-a razumljivo je korišćenje SNMP verzije 2.
 
@@ -169,6 +184,28 @@ config system sysinfo
 end
 ```
 
+Kada su FortiGate u HA, moguće je da uređaji šalju SNMP trap pakete kroz ```ha-mgmt-interface```. To se ne preporučuje, zbog problema sa local-out saobraćajem FortiGate-a.
+
+
+### FortiGate HA menadžment interfejs
+Umesto ha-mgmt-interface komande, preporučuje se korišćenje seta komandi na menadžment interfejsu.
+```
+config system interface
+	edit <IME-INTERFEJSA>
+		set dedicated-to management
+		set management-ip <MENADŽMENT-IP/MASK>
+	next
+end
+```
+
+Komanda ```dedicated-to``` dedicira menadžment interfejs, posle čega se on ne može referencirati u pravilima.
+
+[Technical Tip: FortiGate dedicated-mgmt feature, or Out-of-band Management](https://community.fortinet.com/t5/FortiGate/Technical-Tip-FortiGate-dedicated-mgmt-feature-or-Out-of-band/ta-p/193699).
+
+Komandom ```management-ip``` definišemo jedinstvenu IP adresu za obe jedinice, koja se može koristiti i na menadžment, i na servisnom interfejsu(ne preporučuje se).
+
+[Technical Tip: Implement independent Management IP for HA Cluster]https://community.fortinet.com/t5/FortiGate/Technical-Tip-Implement-independent-Management-IP-for-HA-Cluster/ta-p/224671).
+
 
 
 
@@ -177,6 +214,7 @@ end
 Konfiguracija HA je u većini implementacija ista, ili slična, i postoje određene preporuke koje se retko primenjuju, a značajni su za rad klastera.
 
 Obradićemo jedino rešenje koje ima smisla u implementaciji FortiGate HA, a to je **FortiGate Clustering Protocol(FGCP) Active-Passive(A-P)** mod rada.
+
 
 ### Inicijalna konfiguracija HA
 Inicijalna konfiguracija za rad klastera može uvek biti ista.
@@ -226,6 +264,7 @@ config system ha
     set session-pickup-expectation enable
 end
 ```
+
 
 ### Failover kriterijumi
 Podrazumevani parametri failover-a su:
@@ -293,6 +332,7 @@ Podrazumevani parametri failover-a su:
 	
 	Podrazumevano podešavanje za ```ping-server-flip-timeout``` je 0, failover se dešava kada se izgubi konekcija sa jednim monitor serverom. Uz pomoć ```ha-priority``` i ```ping-server-flip-timeout``` možemo kontrolisati razlog failover-a.
 
+
 ### Failover opcije
 U velikim okruženjima gde FortiGate razmenjuje velike količine ruta kroz dinamičke ruting protokole, može doći do loše replikacije ruta na sekundarni uređaj. U tom slučaju se preporučuje modifikovanje route parametara u okviru HA podešavanja.
 ```
@@ -316,6 +356,7 @@ config system ha
 	set linked-failed-signal enable
 end
 ```
+
 
 ### Konfiguracija VDOM particija
 U slučaju da je potrebno kreirati klaster gde je za jedan VDOM primarni jedan firewall, za drugi VDOM drugi firewall, koristi se VDOM partitioning.
@@ -363,6 +404,7 @@ config system zone
 end
 ```
 
+
 ### Gašenje nekorišćenih interfejsa
 Podrazumevano podešavanje interfejsa je da su upaljeni na većini manjih uređaja. Potrebno ih je ugasiti(i eventualno izbaciti iz hardverskog sviča).
 ```
@@ -374,6 +416,7 @@ config system interface
 end
 ```
 
+
 ### Brisanje nekorišćenih DHCP servera
 Većina manjih uređaja dolaze sa unapred konfigurisanim DHCP serverom za FortiLink Subinterfejse(i eventualno hardverski svič). S obzirom da nije preporuka koristiti njih, potrebno ih je izbrisati.
 ```
@@ -381,6 +424,7 @@ config system dhcp server
 	delete <ID-DHCP-SERVERA>
 end
 ```
+
 
 ### Gašenje menadžment servisa na svim interfejsima koji nisu za menadžment
 Podrazumevana konfiguracija sadrži veliki broj interfejsa na kojima su upaljeni menadžment servisi. Potrebno je ugasiti svaku od njih na mestima na kojima se ne koristi, ili ne treba da se koristi.
@@ -392,6 +436,7 @@ config system interface
 end
 ```
 
+
 ### Definisanje protoka na WAN interfejsima
 ISP linkovi skoro uvek imaju niži protok od same brzine linka. Definisanjem brzine linka imamo tri benefita: dozvoljava statistiku na WAN linku preko FortiAnalyzer-a, potreban za rad nekih od SD-WAN modova i omogućava SD-WAN analitiku na FortiAnalyzer-u. 
 ```
@@ -401,6 +446,7 @@ config system interface
     next
 end
 ```
+
 
 ### Konfiguracija detekcije uređaja
 FortiGate ima opciju prikupljanja informacija o krajnjim uređajima tako što sluša saobraćaj na LAN linkovima i obrađuje ga u jednom preglednom i značajnom prikazu.
@@ -437,6 +483,7 @@ config system password-policy
 end
 ```
 
+
 ### Konfiguracija administratora
 Zaprepašćujući broj korisnika ne briše podrazumevanog korisnika koji se koristi tokom inicijalizacije uređaja. Potrebno je u svakoj implementaciji izbrisati podrazumevanog korisnika, kao i definisati IP adrese preko kojih administratori mogu pristupiti uređaju.
 ```
@@ -453,6 +500,7 @@ config system admin
 end
 ```
 
+
 ### Konfiguracija Multi-Factor Authentication(MFA) za administratora
 Za administratorski pristup se preporučuje implementacija MFA. Fortinet uz uređaj dostavlja dva FortiToken-a besplatno, što se može iskoristiti. Pored toga, podržava se SAML SSO opcije u vidu Microsoft Entra ID, Cisco Duo, Okta itd...
 ```
@@ -464,6 +512,7 @@ config system admin
 	next
 end
 ```
+
 
 ### Konfiguracija break-glass administratora
 Preporuka je da za svaki korisnički nalog postoji MFA konfiguracija. U tom slučaju je dobra praksa imati jedan rezervni nalog u slučaju pada MFA servisa. 
@@ -480,6 +529,7 @@ config system admin
 end
 ```
 
+
 ### Konfiguracija administratorskog profila
 Preporučuje se kreiranje novih administratorskih profila sa nivoem pristupa po tipskoj potrebi administratora. 
 
@@ -494,6 +544,7 @@ config system accprofile
     next
 end
 ```
+
 
 ### Modifikovanje podrazumevanih menadžment portova
 Napadači često traže vektor napada po predefinisanim setovima poznatih portova. Preporučuje se promena portova za menadžment pristup uređaju.
@@ -513,6 +564,7 @@ config system global
 end
 ```
 
+
 ### Povećavanje timeout-a za administratorski pristup
 Podrazumevana vrednost je 60 sekundi. Preporučuje se povećanje vremena zaključanja na bar 5 minuta(300 sekundi)
 ``` 
@@ -529,6 +581,7 @@ config system global
 end
 ```
 
+
 ### Pre-login banner
 Pre-login banner se prikazuje prilikom Web pristupa pre prikazivanja stranice za logovanje. Nije prikazan prilikom CLI pristupa.
 ```
@@ -539,6 +592,7 @@ end
 
 U segmentu **Replacement Messages**->**Pre-login Disclaimer Message** može se dodatno konfigurisati pre-login banner.
 
+
 ### Post-login banner
 Post-login banner se prikazuje prilikom Web i CLI pristupa nakon logovanja na uređaj. S obzirom da se prikazuje prilikom svakog načina pristupa, preporučuje se njegovo korišćenje.
 ```
@@ -548,6 +602,7 @@ end
 ```
 
 U segmentu **Replacement Messages**->**Post-login Disclaimer Message** može se dodatno konfigurisati pre-login banner.
+
 
 ### Gašenje USB auto install opcije
 Preporučeno je ugasiti opciju automatskog instaliranja verzije i konfiguracije na firewall uređaju pomoću USB interfejsa. Time štitimo našu mrežnu infrastrukturu od lica koji imaju fizički pristup opremi.
@@ -560,6 +615,7 @@ config system auto-install
 end
 ```
 
+
 ### Gašenje FortiCloud SSO pristupa
 Preporučeno je gašenje FortiCloud SSO pristupa zbog velikog broja verzija koje imaju slabost kroz ovaj tip pristupa.
 ``` 
@@ -567,6 +623,7 @@ config system global
     set admin-forticloud-sso-login disable
 end
 ```
+
 
 
 
@@ -582,6 +639,7 @@ config system global
 end
 ```
 
+
 ### Uključivanje korišćenja CDN-a
 Preporučena konfiguracija za korišćenje CDN-a za ubrzavanje GUI odziva. Podrazumevana konfiguracija je da je opcija upaljena, ali treba znati za nju.
 ``` 
@@ -589,6 +647,7 @@ config system global
     set gui-cdn-usage enable
 end
 ```
+
 
 ### Uključivanje korišćenja lokalnog ISDB keša
 FortiGate lokalno čuva ISDB ulaze za veliki broj servisa. Korišćenje lokalnog keša pomaže u smanjivanju opterećenja manjih uređaja kod povlačenja razlike ulaza.
@@ -598,6 +657,7 @@ config system settings
 end
 ```
 
+
 ### Uključivanje automatske provere diska
 Kada FortiGate uređaj ima SSD, prilikom neočekivanog reboot-a, potrebno je da se odradi manuelna provera diska za šta je potreban reboot. Automatskom proverom diska izbegavamo dodatni reboot.
 ``` 
@@ -606,6 +666,7 @@ config system global
 end
 ```
 
+
 ### Logovanje CLI komandi
 Podrazumevano, FortiGate ne loguje CLI komande.
 ``` 
@@ -613,6 +674,7 @@ config system global
     set cli-audit-log enable
 end
 ```
+
 
 ### Proširenje logovanja i prikaza logova
 Podrazumevana podešavanja ne loguju implicit deny pravila, local-in i local-out saobraćaj, dodatno logovanje, razrešavanje IP adresa i portova, API akcije i mapiranje imena zona.
@@ -635,6 +697,7 @@ config log memory filter
     set local-traffic enable
 end
 ```
+
 
 ### Uključivanje logovanja na disk
 FortiGate sa diskom bi trebalo da loguje saobraćaj na disk, sa time da kada se popuni disk, brisanje kreće od najstarijih ka novijim logovima.
