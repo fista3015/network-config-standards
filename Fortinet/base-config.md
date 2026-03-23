@@ -47,6 +47,8 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 		- [Logovanje CLI komandi](#logovanje-cli-komandi)
 		- [Proširenje logovanja i prikaza logova](#proširenje-logovanja-i-prikaza-logova)
 		- [Uključivanje logovanja na disk](#uključivanje-logovanja-na-disk)
+	- [Security profili](#security-profili)
+
 
 ## Sistemska podešavanja
 
@@ -735,3 +737,111 @@ end
 ```
 
 [Technical Tip: How to configure logging to disk on the FortiGate using the GUI or the CLI](https://community.fortinet.com/t5/FortiGate/Technical-Tip-How-to-configure-logging-to-disk-on-the-FortiGate/ta-p/216995)
+
+
+
+
+
+## Firewall polise
+Firewall polise obuhvataju dva seta polisa:
+ - Local-in polisa
+ - Security polisa
+
+
+### Geografski objekti
+Geografski objekti su predefinisane liste IP adresa koje su u vlasništvu internet provajdera u određenim državama. Mogu se koristiti u različitim polisama, između ostalog u local-in polisi. U budućnosti ćemo pomenuti Threat feed-ove koji sadrže liste IP adresa provajdera definisani kroz njihov jedinstveni AS.
+```
+config firewall address
+	edit <IME-GEO-OBJEKTA1>
+		set type geography
+		set country "<ŠIFRA-DRŽAVE1>"
+	next
+	edit <IME-GEO-OBJEKTA2>
+		set type geography
+		set country "<ŠIFRA-DRŽAVE2>"
+	next
+end
+```
+
+### ISDB objekti
+ISDB objekti su lista internet servisa koji sadrže mapiranje destinaconih IP-adresa:Port.
+
+Preporuka je kreiranje tri tipa ISDB grupa:
+ - Grupa sa malicioznim internet servisima
+ - Grupa sa vendorskim internet skenerima
+ - Grupa sa opsezima vendora za hosting servise
+```
+config firewall internet-service-group
+	edit <IME-ISDB-GRUPE1>
+		set direction source
+		set member "VPN-Anonymous.VPN" "Tor-Tor.Node" "Tor-Relay.Node" "Tor-Exit.Node" "Spam-Spamming.Server" "Proxy-Proxy.Server" "Phishing-Phishing.Server" "Malicious-Malicious.Server" "Hosting-Bulletproof.Hosting" "Botnet-C&C.Server"
+	next
+	edit <IME-ISDB-GRUPE2>
+		set direction source
+		set member "Censys-Scanner" "Stretchoid-Scanner" "InterneTTL-Scanner" "Shodan-Scanner" "Tenable-Tenable.io.Cloud.Scanner" "NetScout-Scanner" "Recyber-Scanner" "Cyber.Casa-Scanner" "BinaryEdge-Scanner" "UK.NCSC-Scanner" "CriminalIP-Scanner" "Internet.Census.Group-Scanner" "Shadowserver-Scanner" "LeakIX-Scanner" "Hadrian-Scanner" "Rapid7-Scanner" "ONYPHE-Scanner" "Modat-Scanner" "Palo.Alto.Networks-Cortex.Xpanse.Scanner"
+	next
+	edit <IME-ISDB-GRUPE3>
+		set direction source
+		set member "Hosting-Bulletproof.Hosting" "ColoCrossing-ColoCrossing.Hosting.Service" "THE.Hosting-THE.Hosting.Hosting.Service" "SERVERD-SERVERD.Hosting.Service" "EGI-EGI.Hosting.Service" "M247-M247.Hosting.Service" "Quintex-Quintex.Hosting.Service" "Aeza-Aeza.Hosting.Service" "Amanah-Amanah.Hosting.Service" "Cloudzy-Cloudzy.Hosting.Service" "3xK-3xK.Hosting.Service"
+	next
+end
+```
+ 
+Treba napomenuti da se ovi objekti koriste u produkcionim okruženjima na različitim projektima.
+
+[Policy and Objects: Internet Services](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/849970/internet-services)
+
+
+### Eksterni konektori
+FortiGate podržava različite tipove eksternih konektora kroz threat feed-ove. Koncentrisaćemo se na one koje se koriste u različitim segmentima Local-in i Security polisa.
+ - FortiGuard Category Threat Feed -- Koristi se za povlačenje eksternih lista URL-ova koji se referenciraju u Web filtering-u.
+ - IP Address Threat Feed -- Koristi se za povlačenje eksternih lista IP adresa koji se referenciraju u Local-in i Security polisama kao source i destinacioni objekti.
+ - Domain Name Threat Feed -- Koristi se za povlačenje eksternih lista domenskih imena koji se referenciraju u DNS filtering-u.
+ - MAC Address Threat Feed -- Koristi se za povlačenje eksternih lista MAC adresa koji se referenciraju u Security polisi, između ostalog.
+ - Malware Hash Threat Feed -- Koristi se za povlačenje eksternih lista Hash-eva koji se referenciraju u Antivirus profilima.
+
+[Fortinet Security Fabric: External feeds](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/9463/external-feeds)
+
+
+### Local-in polisa
+Local-in polisa sadrži pravila koja dozvoljavaju pristup koji se terminira(počinje i završava) na samim interfejsima FortiGate uređaja.
+
+Kada se selektuje menadžment servis na samom interfejsu, ili se upali funkcionalnost, automatski se kreira Local-in pravilo.
+```
+config firewall local-in-policy
+	edit 0
+		set intf <IME-WAN-INTERFEJSA>
+		set dstaddr all
+		set internet-service-src enable
+		set internet-service-src-group <IME-ISDB-GRUPE1> <IME-ISDB-GRUPE2> <IME-ISDB-GRUPE3>
+		set action deny
+	next
+	edit 0
+		set intf <IME-WAN-INTERFEJSA>
+		set dstaddr all
+		set srcaddr-negate enable
+		set srcaddr <IME-GEO-OBJEKTA1> <IME-GEO-OBJEKTA2>
+		set action deny
+		set service <IME-SERVISNE-GRUPE>
+	next
+end
+```
+
+[Technical Tip: Creating a Local-In policy (IPv4 and IPv6) on GUI](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Creating-a-Local-In-policy-IPv4-and-IPv6-on-GUI/ta-p/326547)
+
+
+### Virtual patching na Local-in polisi
+Konfiguracija local-in polise obuhvata segment zaštite uređaja na L4 nivou. Od verzije 7.4.1, uveden je koncept virtual patching-a, gde uređaj koristi svoju IPS bazu kako bi blokirao pokušaje napada poznatih slabosti FortiGate uređaja. Virtual patching se između ostalog može koristiti i u local-in pravilima.
+
+[Local-in Policies: Virtual patching on the local-in management interface](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/393161/virtual-patching-on-the-local-in-management-interface)
+
+
+
+
+
+### Security polisa
+Konfiguracija security polise je isrcpan proces sa velikim brojem opcija koje administrator ima, kako bi što preciznije definisao tip saobraćaja koji hoće da propusti. U ovom delu teksta se koncentrišemo na baseline pravila koja se preporučuju prilikom inicijalnog definisanja pravila.
+
+
+
+## Security profili
