@@ -51,6 +51,11 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 		- [Geografski objekti](#geografski-objekti)
 		- [ISDB objekti](#isdb-objekti)
 		- [Eksterni konektori](#eksterni-konektori)
+		- [Local-in polisa](#local-in-polisa)
+		- [Virtual Patching](#virtual-patching)
+		- [Security polisa](#security-polisa)
+	- [Security profila](#security-profila)
+
 
 ## Sistemska podešavanja
 
@@ -832,7 +837,7 @@ end
 [Technical Tip: Creating a Local-In policy (IPv4 and IPv6) on GUI](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Creating-a-Local-In-policy-IPv4-and-IPv6-on-GUI/ta-p/326547)
 
 
-### Virtual patching na Local-in polisi
+### Virtual Patching
 Konfiguracija local-in polise obuhvata segment zaštite uređaja na L4 nivou. Od verzije 7.4.1, uveden je koncept virtual patching-a, gde uređaj koristi svoju IPS bazu kako bi blokirao pokušaje napada poznatih slabosti FortiGate uređaja. Virtual patching se između ostalog može koristiti i u local-in pravilima.
 
 [Local-in Policies: Virtual patching on the local-in management interface](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/393161/virtual-patching-on-the-local-in-management-interface)
