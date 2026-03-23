@@ -47,8 +47,10 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 		- [Logovanje CLI komandi](#logovanje-cli-komandi)
 		- [Proširenje logovanja i prikaza logova](#proširenje-logovanja-i-prikaza-logova)
 		- [Uključivanje logovanja na disk](#uključivanje-logovanja-na-disk)
-	- [Security profili](#security-profili)
-
+	- [Firewall polise](#firewall-polise)
+		- [Geografski objekti](#geografski-objekti)
+		- [ISDB objekti](#isdb-objekti)
+		- [Eksterni konektori](#eksterni-konektori)
 
 ## Sistemska podešavanja
 
