@@ -874,7 +874,7 @@ Baseline pravila se definišu sa sličnim objektima:
  
  - Korisničke grupe - U Security pravilu se može izvršiti filtracija po grupama. Ovo je šira tema koja obuhvata tipove pristupa na pasivnu i aktivnu autentifikaciju korisnika.
  
- [User & Authentication](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/732715/user-definition-groups-and-settings)
+	[User & Authentication](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/732715/user-definition-groups-and-settings)
 
 
 ### Send packet deny opcija
