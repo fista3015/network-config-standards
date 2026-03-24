@@ -852,7 +852,9 @@ Konfiguracija security polise je isrcpan proces sa velikim brojem opcija koje su
 Na sličan način Local-in polisi se konfigurišu i pravila za Security polisu.
 Baseline pravila se definišu sa sličnim objektima:
  - ISDB objekti - Treba obratiti pažnju na smer ISDB objekta. U zavisnosti od toga da li se ISDB objekat koristi za Source ili Destinaciju u Security pravilima, potrebno je izmeniti grupu sa objektima.
+
  - Geografski objekti - Za saobraćaj sa interneta ka internoj mreži se mogu definisati samo države sa kojih je moguć pristup. Za saobraćaj ka internetu se može blokirati pristup ka državama za koje pristup nikad nije potreban(Kina, Severna Koreja, Rusija, Sirija, Iran, Brazil...)
+
  - Eksterni objekti - U nastavku ostavljamo listu eksternih IP lista koje koristimo na nekim od projekata:
 	- [Cumry Bogon lista](https://www.team-cymru.org/Services/Bogons/fullbogons-ipv4.txt)
 	- [Emerging threats Block IPs](https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt)
@@ -861,12 +863,34 @@ Baseline pravila se definišu sa sličnim objektima:
 	- [BBcan177 MS3 Block IPs](https://gist.githubusercontent.com/BBcan177/d7105c242f17f4498f81/raw/f69be712a06e998191adfe4c86d74e8cacf08d28/MS-3)
 	- [CINSscore Bad Guys](http://cinsscore.com/list/ci-badguys.txt)
 	- [Blocklist.de](https://lists.blocklist.de/lists/all.txt)
+
  - ASN objekti - U okviru eksternih objekata se može definisati i blokiranje po AS broju mreže servis provajdera. Pretraživanje ASN-a možete naći na ovom [linku](https://asn.ipinfo.app/search), dok link do liste izgleda ovako ```https://asn.ipinfo.app/api/text/list/AS<<ASN-BROJ>>```.
  
  Primer: [Informacije o ASN-u](https://asn.ipinfo.app/AS49402), [Lista ASN IP adresa](https://asn.ipinfo.app/api/text/list/AS49402)
-
-
-
  
+ - Schedule objekti - U slučaju da je to potrebno, može se definisati vreme tokom kojeg je aktivno Security pravilo. U slučaju da je to više slotova, može se definisati i Schedule grupa.
+ 
+ - Negate opcija - Za svaki objekat se može definisati negacija u okviru pravila negate opcijom.
+ 
+ - Korisničke grupe - U Security pravilu se može izvršiti filtracija po grupama. To je široka tema koja deli tipove prisutpa na pasivnu i aktivnu autentifikaciju korisnika.
+ 
+ [User & Authentication](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/732715/user-definition-groups-and-settings)
+
+
+### Send packet deny opcija
+Podrazumevana podešavanja FortiGate firewall-a nalažu da uređaj 'tiho' ispušta pakete bez obaveštenja korisnika. Većina drugih proizvođača šalje ICMP poruku Source IP adresi kao potvrdu da je paket blokiran od strane firewall-a. Slično ponašanje se može uključiti i na FortiGate firewall-ima.
+```
+config firewall policy
+	edit <ID-SECURITY-PRAVILA>
+		set send-deny-packet enable
+	next
+end
+```
+
+[Troubleshooting Tip: FortiGate did not reply with TCP RST when 'set send-deny-packet' is enabled](https://community.fortinet.com/t5/FortiGate/Troubleshooting-Tip-FortiGate-did-not-reply-with-TCP-RST-when/ta-p/379841)
+
+
+
+
 
 ## Security profili
