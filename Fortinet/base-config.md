@@ -54,7 +54,7 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 		- [Local-in polisa](#local-in-polisa)
 		- [Virtual Patching](#virtual-patching)
 		- [Security polisa](#security-polisa)
-	- [Security profila](#security-profila)
+	- [Security profili](#security-profili)
 
 
 ## Sistemska podešavanja
