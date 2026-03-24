@@ -866,7 +866,7 @@ Baseline pravila se definišu sa sličnim objektima:
 
  - ASN objekti - U okviru eksternih objekata se može definisati i blokiranje po AS broju mreže servis provajdera. Pretragu ASN-a možete pronaći na ovom [linku](https://asn.ipinfo.app/search), dok link do liste izgleda ovako ```https://asn.ipinfo.app/api/text/list/AS<<ASN-BROJ>>```.
  
- Primer: [Informacije o ASN-u](https://asn.ipinfo.app/AS49402), [Lista ASN IP adresa](https://asn.ipinfo.app/api/text/list/AS49402)
+	Primer: [Informacije o ASN-u](https://asn.ipinfo.app/AS49402), [Lista ASN IP adresa](https://asn.ipinfo.app/api/text/list/AS49402)
  
  - Schedule objekti - Po potrebi, može se definisati vreme tokom kojeg je aktivno Security pravilo. U slučaju da je to više slotova, može se definisati i Schedule grupa.
  
