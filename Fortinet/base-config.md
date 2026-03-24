@@ -754,6 +754,7 @@ Firewall polise obuhvataju dva seta polisa:
  - Local-in polisa
  - Security polisa
 
+Svaka polisa koristi različite tipove objekata koji su detaljnije definisani ispod.
 
 ### Geografski objekti
 Geografski objekti su predefinisane liste IP adresa koje su u vlasništvu internet provajdera u određenim državama. Mogu se koristiti u različitim polisama, između ostalog u local-in polisi. U budućnosti ćemo pomenuti Threat feed-ove koji sadrže liste IP adresa provajdera definisani kroz njihov jedinstveni AS.
