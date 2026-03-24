@@ -8,7 +8,7 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 	- [Sistemska podešavanja](#sistemska-podešavanja)
 		- [Podešavanje imena uređaja](#podešavanja-imena-uređaja)
 		- [Upgrade firewall uređaja](#upgrade-firewall-uređaja)
-		- [Gašenje opcije automatskog upgrade-a](#gašenje-opcije-automatskog-upgrade-a)
+		- [Isključivanje opcije automatskog upgrade-a](#isključivanje-opcije-automatskog-upgrade-a)
 		- [Konfiguracija DNS servera](#konfiguracija-dns-servera)
 		- [Konfiguracija NTP servera](#konfiguracija-ntp-servera)
 		- [Konfiguracija SNMP servera](#konfiguracija-snmp-servera)
@@ -21,9 +21,9 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 		- [Konfiguracija VDOM particija](#konfiguracija-vdom-particija)
 	- [Podešavanja interfejsa](#podešavanja-interfejsa)
 		- [Blokiranje intra-zone saobraćaja](#blokiranje-intra-zone-saobraćaja)
-		- [Gašenje nekorišćenih interfejsa](#gašenje-nekorišćenih-interfejsa)
+		- [Isključivanje nekorišćenih interfejsa](#isključivanje-nekorišćenih-interfejsa)
 		- [Brisanje nekorišćenih DHCP servera](#brisanje-nekorišćenih-dhcp-servera)
-		- [Gašenje menadžment servisa na svim interfejsima koji nisu za menadžment](#gašenje-menadžment-servisa-na-svim-interfejsima-koji-nisu-za-menadžment)
+		- [Isključivanje menadžment servisa na svim interfejsima koji nisu za menadžment](#isključivanje-menadžment-servisa-na-svim-interfejsima-koji-nisu-za-menadžment)
 		- [Definisanje protoka na WAN interfejsima](#definisanje-protoka-na-wan-interfejsima)
 		- [Konfiguracija detekcije uređaja](#konfiguracija-detekcije-uređaja)
 	- [Administratorski pristup](#administratorski-pristup)
@@ -37,8 +37,8 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 		- [Povećavanja timeout-a za idle stanje administratora](#povećavanje-timeout-a-za-idle-stanje-administratora)
 		- [Pre-login banner](#pre-login-banner)
 		- [Post-login banner](#post-login-banner)
-		- [Gašenje USB auto install opcije](#gašenje-usb-auto-install-opcije)
-		- [Gašenje FortiCloud SSO pristupa](#gašenje-forticloud-sso-pristupa)
+		- [Isključivanje USB auto install opcije](#isključivanje-usb-auto-install-opcije)
+		- [Isključivanje FortiCloud SSO pristupa](#isključivanje-forticloud-sso-pristupa)
 	- [Logovanje i performanse uređaja](#logovanje-i-performanse-uređaja)
 		- [Kreiranje revizije nakon logout](#kreiranje-revizije-nakon-logout)
 		- [Uključivanje korišćenja CDN-a](#uključivanje-korišćenja-cdn-a)
@@ -70,13 +70,13 @@ end
 
 
 ### Upgrade firewall uređaja
-Potrebno je uvek pratiti novosti PSIRT-a vezane za slabosti firmware verzija uređaja. Kada se pronađe slabost, potrebno je da se zakrpi u što kraćem vremenskom roku.
+Potrebno je redovno pratiti novosti PSIRT-a vezane za slabosti firmware verzija uređaja. Kada se pronađe slabost, potrebno je da se zakrpi u što kraćem vremenskom roku.
 
 [Technical Tip: Recommended release for FortiOS](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Recommended-release-for-FortiOS/ta-p/227178)
 
 
-### Gašenje opcije automatskog upgrade-a
-Za uređaje koji su vezani na FortiGate Cloud, podrazumevano podešavanje je automatski upgrade na najnoviju verziju firmware-a na istoj major verziji. Preporučuje se gašenje te opcije. 
+### Isključivanje opcije automatskog upgrade-a
+Za uređaje koji su vezani na FortiGate Cloud, podrazumevano podešavanje je automatski upgrade na najnoviju verziju firmware-a na istoj major verziji. Preporučuje se isključivanje te opcije. 
 ``` 
 config system fortiguard
     set auto-firmware-upgrade disable
@@ -89,7 +89,7 @@ end
 ### Konfiguracija DNS servera
 Podrazumevana vrednost su FortiGuard DNS serveri. Preporuka je da se promene na interne DNS servere.
 
-U slučaju da ne postoji interni DNS server, preporuka je korišćenje javnog Cisco Umbrella DNS servera:
+U slučaju da ne postoji interni DNS server, preporuka je korišćenje javnih Cisco Umbrella DNS servera:
 ``` 
 208.67.222.222
 208.67.220.220
@@ -159,7 +159,7 @@ U slučaju da je to potrebno, FortiGate može biti NTP server:
 ### Konfiguracija SNMP servera
 Najsigurniji SNMP protokol u ovom trenutku je SNMP verzija 3. Međutim, zbog kompleksnosti implementacije polling-a razumljivo je korišćenje SNMP verzije 2.
 
-Svakako, lakši segment konfiguracije je SNMP traps u okviru verzije 3 na koji se fokusiramo ispod.
+Svakako, jednostavniji segment konfiguracije su SNMP trap-ovi u okviru verzije 3 na koji se fokusiramo ispod.
 ```
 config system snmp sysinfo
 	set status enable
@@ -207,7 +207,7 @@ config system interface
 end
 ```
 
-Komanda ```dedicated-to``` dedicira menadžment interfejs, posle čega se on ne može referencirati u pravilima.
+Komanda ```dedicated-to``` rezerviše menadžment interfejs, posle čega se on ne može referencirati u pravilima.
 
 [Technical Tip: FortiGate dedicated-mgmt feature, or Out-of-band Management](https://community.fortinet.com/t5/FortiGate/Technical-Tip-FortiGate-dedicated-mgmt-feature-or-Out-of-band/ta-p/193699)
 
@@ -265,7 +265,7 @@ Preporučena konfiguracija klastera je da se override opcija onemogući, gde se 
 
 
 ### Replikacija sesija
-Podrazumevana vrednost ne uključuje repliciranje sesija na sekundarni uređaj. Preporučuje se repliciranje svih TCP, UDP, SCTP i ICMP sesija.
+Podrazumevana vrednost ne uključuje replikaciju sesija na sekundarni uređaj. Preporučuje se repliciranje svih TCP, UDP, SCTP i ICMP sesija.
 ```
 config system ha
     set session-pickup enable
@@ -292,7 +292,7 @@ Podrazumevani parametri failover-a su:
 	```
 
 - Visoka iskorišćenost memorije uređaja(opciono)
-	Kako bi se desio failover u klasteru nakon previsoke memorije uređaja, potrebno je upaliti monitoring memorije u HA procesu. Preporuka je da se i kod manjih uređaja poveća limit sa conserve mod, dokle god je preporučena verzija za uređaje 7.4.x.
+	Kako bi se desio failover u klasteru nakon visoke iskorišćenosti memorije uređaja, potrebno je upaliti monitoring memorije u HA procesu. Preporuka je da se i kod manjih uređaja poveća limit sa conserve mod, dokle god je preporučena verzija za uređaje 7.4.x.
 	```
 	config system ha
 		set memory-based-failover enable
@@ -319,7 +319,7 @@ Podrazumevani parametri failover-a su:
 	Monitor interfejs može biti i fizički interfejs u agregaciji, pored toga se može i definisati minimalni broj monitoring interfejsa nakon čega dolazi do failover-a.
 
 - Monitor server(opciono)
-	Kada monitoring interfejsa nije dovoljan, potrebno je testirati konekciju sa udaljenom IP adresom pomoću FortiGate link-monitor procesa. Potrebno je ugasiti opcije link monitora koje utiču na rutiranje.
+	Kada monitoring interfejsa nije dovoljan, potrebno je testirati dostupnost sa udaljenom IP adresom pomoću FortiGate link-monitor procesa. Potrebno je ugasiti opcije link monitora koje utiču na rutiranje.
 	``` 
 	config system link-monitor
 		edit "<IME-LINK-MONITORA>"  
@@ -340,7 +340,7 @@ Podrazumevani parametri failover-a su:
 	end
 	```
 
-	Podrazumevana vrednost za protocol je 1(ICMP).
+	Podrazumevana vrednost za protokol je 1(ICMP).
 	
 	Podrazumevano podešavanje za ```ping-server-flip-timeout``` je 0, failover se dešava kada se izgubi konekcija sa jednim monitor serverom. Uz pomoć ```ha-priority``` i ```ping-server-flip-timeout``` možemo kontrolisati razlog failover-a.
 
@@ -377,13 +377,13 @@ end
 
 
 ### Konfiguracija VDOM particija
-U slučaju da je potrebno kreirati klaster gde je za jedan VDOM primarni jedan firewall, za drugi VDOM drugi firewall, koristi se VDOM partitioning.
+U slučaju da je potrebno kreirati klaster gde je za jedan VDOM primarni jedan uređaj, za drugi VDOM drugi uređaj, koristi se VDOM partitioning.
 
 Najčešći slučaj je podela VDOM-ova po lokaciji, gde u okviru dva datacentra postoji jedan FGCP klaster.
 ```
 config system ha
-	set vklasterstatus enable
-	config vklaster
+	set vcluster-status enable
+	config vcluster
         edit 1
             set override enable
             set priority 200
@@ -427,7 +427,7 @@ end
 [Technical Tip: Block or allow intra-zone traffic](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Block-or-allow-intra-zone-traffic/ta-p/279733)
 
 
-### Gašenje nekorišćenih interfejsa
+### Isključivanje nekorišćenih interfejsa
 Podrazumevano podešavanje interfejsa je da su upaljeni na većini manjih uređaja. Potrebno ih je ugasiti(i eventualno izbaciti iz hardverskog sviča).
 ```
 config system interface
@@ -448,7 +448,7 @@ end
 ```
 
 
-### Gašenje menadžment servisa na svim interfejsima koji nisu za menadžment
+### Isključivanje menadžment servisa na svim interfejsima koji nisu za menadžment
 Podrazumevana konfiguracija sadrži veliki broj interfejsa na kojima su upaljeni menadžment servisi. Potrebno je ugasiti svaku od njih na mestima na kojima se ne koristi, ili ne treba da se koristi.
 ``` 
 config system interface
@@ -471,7 +471,7 @@ end
 
 
 ### Konfiguracija detekcije uređaja
-FortiGate ima opciju prikupljanja informacija o krajnjim uređajima tako što sluša saobraćaj na LAN linkovima i obrađuje ga u jednom preglednom i značajnom prikazu.
+FortiGate ima opciju prikupljanja informacija o krajnjim uređajima tako što sluša saobraćaj na LAN linkovima i obrađuje ga u jednom preglednom i korisnom prikazu.
 ```
 config system interface
     edit "<IME-INTERFEJSA>"  
@@ -509,7 +509,7 @@ end
 
 
 ### Konfiguracija administratora
-Zaprepašćujući broj korisnika ne briše podrazumevanog korisnika koji se koristi tokom inicijalizacije uređaja. Potrebno je u svakoj implementaciji izbrisati podrazumevanog korisnika, kao i definisati IP adrese preko kojih administratori mogu pristupiti uređaju.
+Veliki broj korisnika ne briše podrazumevanog korisnika koji se koristi tokom inicijalizacije uređaja. Potrebno je u svakoj implementaciji izbrisati podrazumevanog korisnika, kao i definisati IP adrese preko kojih administratori mogu pristupiti uređaju.
 ```
 config system admin
 	delete admin
@@ -542,7 +542,7 @@ Primer za SAML SSO sa Microsoft Entra ID možete naći ispod:
 
 
 ### Konfiguracija break-glass administratora
-Preporuka je da za svaki korisnički nalog postoji MFA konfiguracija. U tom slučaju je dobra praksa imati jedan rezervni nalog u slučaju pada MFA servisa. 
+Preporuka je da za svaki korisnički nalog postoji MFA konfiguracija. U tom slučaju, dobra je praksa imati jedan rezervni nalog u slučaju pada MFA servisa. 
 
 Taj nalog se konfiguriše sa pristupom sa određenih IP adresa(ili samo konzolno) i sa kompleksnom šifrom sa visokim brojem karaktera(32 ili više). Ispod možete naći primer konfiguracije administratora za break-glass pristup samo preko konzole.
 ```
@@ -558,7 +558,7 @@ end
 
 
 ### Konfiguracija administratorskog profila
-Preporučuje se kreiranje novih administratorskih profila sa nivoem pristupa po tipskoj potrebi administratora. 
+Preporučuje se kreiranje novih administratorskih profila sa nivoem pristupa po potrebama administratora. 
 
 Jedan primer pravilnog limitiranja pristupa postoji u našem CT Cloud-u, gde se za određenog korisnika dopušta pristup CyberStellar alatu koji dinamički upisuje blacklist-ovane IP adrese kroz adresne objekte u postojeću adresnu grupu koja se koristi u firewall pravilu.
 ```
@@ -584,7 +584,7 @@ config system global
 end
 ```
 
-Telnet port ne mora da se menja, s obzirom da se u svakoj implementaciji preporučuje gašenje Telnet servisa na FortiGate uređaju.
+Telnet port ne mora da se menja, s obzirom da se u svakoj implementaciji preporučuje isključivanje Telnet servisa na FortiGate uređaju.
 ```
 config system global
     set admin-telnet disable
@@ -631,7 +631,7 @@ end
 U segmentu **Replacement Messages**->**Post-login Disclaimer Message** može se dodatno konfigurisati pre-login banner.
 
 
-### Gašenje USB auto install opcije
+### Isključivanje USB auto install opcije
 Preporučeno je ugasiti opciju automatskog instaliranja verzije i konfiguracije na firewall uređaju pomoću USB interfejsa. Time štitimo našu mrežnu infrastrukturu od lica koji imaju fizički pristup opremi.
 
 U slučajevima kada izvršavamo ZTP, odnosno LTP, implementaciju uređaja pomoću USB-a se preporučuje podrazumevano podešavanje dok se ZTP proces ne završi.
@@ -645,8 +645,8 @@ end
 [Technical Tip: Automatic installation of Firmware and system configuration](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Automatic-installation-of-Firmware-and-system/ta-p/197938)
 
 
-### Gašenje FortiCloud SSO pristupa
-Preporučeno je gašenje FortiCloud SSO pristupa zbog velikog broja verzija koje imaju slabost kroz ovaj tip pristupa.
+### Isključivanje FortiCloud SSO pristupa
+Preporučeno je isključivanje FortiCloud SSO pristupa zbog velikog broja verzija koje imaju slabost kroz ovaj tip pristupa.
 ``` 
 config system global
     set admin-forticloud-sso-login disable
@@ -735,7 +735,7 @@ end
 
 
 ### Uključivanje logovanja na disk
-FortiGate sa diskom bi trebalo da loguje saobraćaj na disk, sa time da kada se popuni disk, brisanje kreće od najstarijih ka novijim logovima.
+FortiGate sa diskom bi trebalo da loguje saobraćaj na disk, pri čemu, kada se popuni disk, brisanje kreće od najstarijih ka novijim logovima.
 ``` 
 config log disk setting
     set status enable
@@ -750,14 +750,14 @@ end
 
 
 ## Firewall polise
-Firewall polise obuhvataju dva seta polisa:
+Firewall Security obuhvata dva seta polisa:
  - Local-in polisa
  - Security polisa
 
 Svaka polisa koristi različite tipove objekata koji su detaljnije definisani ispod.
 
 ### Geografski objekti
-Geografski objekti su predefinisane liste IP adresa koje su u vlasništvu internet provajdera u određenim državama. Mogu se koristiti u različitim polisama, između ostalog u local-in polisi. U budućnosti ćemo pomenuti Threat feed-ove koji sadrže liste IP adresa provajdera definisani kroz njihov jedinstveni AS.
+Geografski objekti su predefinisane liste IP adresa koje pripadaju internet provajderima u određenim državama. Mogu se koristiti u različitim polisama, između ostalog u local-in polisi. U budućnosti ćemo pomenuti Threat feed-ove koji sadrže liste IP adresa provajdera definisani kroz njihov jedinstveni AS broj.
 ```
 config firewall address
 	edit <IME-GEO-OBJEKTA1>
@@ -772,7 +772,7 @@ end
 ```
 
 ### ISDB objekti
-ISDB objekti su lista internet servisa koji sadrže mapiranje destinaconih IP-adresa:Port.
+ISDB objekti su lista internet servisa koji sadrže mapiranje destinacionih IP adresa i portova.
 
 Preporuka je kreiranje tri tipa ISDB grupa:
  - Grupa sa malicioznim internet servisima
@@ -795,13 +795,13 @@ config firewall internet-service-group
 end
 ```
  
-Treba napomenuti da se slični objekti koriste u produkcionim okruženjima na različitim projektima.
+Slične objekte koristimo u produkcionim okruženjima na određenim projektima.
 
 [Policy and Objects: Internet Services](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/849970/internet-services)
 
 
 ### Eksterni konektori
-FortiGate podržava različite tipove eksternih konektora kroz threat feed-ove. Koncentrisaćemo se na one koje se koriste u različitim segmentima Local-in i Security polisa.
+FortiGate podržava različite tipove eksternih konektora kroz threat feed-ove. Fokusiraćemo se na one koje se koriste u različitim segmentima Local-in i Security polisa.
  - FortiGuard Category Threat Feed - Koristi se za povlačenje eksternih lista URL-ova koji se referenciraju u Web filtering-u.
  - IP Address Threat Feed - Koristi se za povlačenje eksternih lista IP adresa koji se referenciraju u Local-in i Security polisama kao source i destinacioni objekti.
  - Domain Name Threat Feed - Koristi se za povlačenje eksternih lista domenskih imena koji se referenciraju u DNS filtering-u.
@@ -814,7 +814,7 @@ FortiGate podržava različite tipove eksternih konektora kroz threat feed-ove. 
 ### Local-in polisa
 Local-in polisa sadrži pravila koja dozvoljavaju pristup koji se terminira(počinje i završava) na samim interfejsima FortiGate uređaja.
 
-Kada se selektuje menadžment servis na samom interfejsu, ili se upali funkcionalnost, automatski se kreira Local-in pravilo.
+Kada se omogući menadžment servis na samom interfejsu, ili se upali funkcionalnost, automatski se kreira Local-in pravilo.
 ```
 config firewall local-in-policy
 	edit 0
@@ -839,23 +839,23 @@ end
 
 
 ### Virtual Patching
-Konfiguracija local-in polise obuhvata segment zaštite uređaja na L4 nivou. Od verzije 7.4.1, uveden je koncept virtual patching-a, gde uređaj koristi svoju IPS bazu kako bi blokirao pokušaje napada poznatih slabosti FortiGate uređaja. Virtual patching se između ostalog može koristiti i u local-in pravilima.
+Konfiguracija local-in polise obuhvata segment zaštite uređaja na L4 nivou. Od verzije 7.4.1, uveden je koncept virtual patching-a, gde uređaj koristi IPS bazu kako bi blokirao pokušaje eksploatacije poznatih ranjivosti FortiGate uređaja. Virtual patching se između ostalog može koristiti i u local-in pravilima.
 
 [Local-in Policies: Virtual patching on the local-in management interface](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/393161/virtual-patching-on-the-local-in-management-interface)
 
 
 ### Security polisa
-Security polisa je sastavljena od pravila koje blokiraju ili dopuštaju saobraćaj koji prolazi kroz FortiGate firewall.
+Security polisa je sastavljena od pravila koja blokiraju ili dopuštaju saobraćaj koji prolazi kroz FortiGate firewall.
 
-Konfiguracija security polise je isrcpan proces sa velikim brojem opcija koje su dostupne administratoru, kako bi što preciznije definisao tip saobraćaja koji hoće da propusti. U ovom delu teksta se koncentrišemo na baseline pravila koja se preporučuju prilikom inicijalnog definisanja pravila.
+Konfiguracija security polise je iscrpan proces sa velikim brojem opcija koje su dostupne administratoru, kako bi što preciznije definisao tip saobraćaja koji želi da propusti. U ovom delu teksta se koncentrišemo na baseline pravila koja se preporučuju prilikom inicijalnog definisanja pravila.
 
-Na sličan način Local-in polisi se konfigurišu i pravila za Security polisu.
+Na sličan način kao i Local-in polisa se konfigurišu i pravila za Security polisu.
 Baseline pravila se definišu sa sličnim objektima:
- - ISDB objekti - Treba obratiti pažnju na smer ISDB objekta. U zavisnosti od toga da li se ISDB objekat koristi za Source ili Destinaciju u Security pravilima, potrebno je izmeniti grupu sa objektima.
+ - ISDB objekti - Treba obratiti pažnju na smer ISDB objekta. U zavisnosti od toga da li se ISDB objekat koristi za Source ili Destinaciju u Security pravilima, potrebno je prilagoditi grupu objekata.
 
- - Geografski objekti - Za saobraćaj sa interneta ka internoj mreži se mogu definisati samo države sa kojih je moguć pristup. Za saobraćaj ka internetu se može blokirati pristup ka državama za koje pristup nikad nije potreban(Kina, Severna Koreja, Rusija, Sirija, Iran, Brazil...)
+ - Geografski objekti - Za saobraćaj sa interneta ka internoj mreži se mogu definisati samo države sa kojih je moguć pristup. Za saobraćaj ka internetu se može blokirati pristup ka državama za koje pristup nikad nije potreban(kao što su Kina, Severna Koreja, Rusija, Sirija, Iran, Brazil...)
 
- - Eksterni objekti - U nastavku ostavljamo listu eksternih IP lista koje koristimo na nekim od projekata:
+ - Eksterni objekti - U nastavku ostavljamo nabrojane eksterne IP liste koje koristimo na nekim od projekata:
 	- [Cumry Bogon lista](https://www.team-cymru.org/Services/Bogons/fullbogons-ipv4.txt)
 	- [Emerging threats Block IPs](https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt)
 	- [Emerging threats Compromised IPs](https://rules.emergingthreats.net/blockrules/compromised-ips.txt)
@@ -864,21 +864,21 @@ Baseline pravila se definišu sa sličnim objektima:
 	- [CINSscore Bad Guys](http://cinsscore.com/list/ci-badguys.txt)
 	- [Blocklist.de](https://lists.blocklist.de/lists/all.txt)
 
- - ASN objekti - U okviru eksternih objekata se može definisati i blokiranje po AS broju mreže servis provajdera. Pretraživanje ASN-a možete naći na ovom [linku](https://asn.ipinfo.app/search), dok link do liste izgleda ovako ```https://asn.ipinfo.app/api/text/list/AS<<ASN-BROJ>>```.
+ - ASN objekti - U okviru eksternih objekata se može definisati i blokiranje po AS broju mreže servis provajdera. Pretragu ASN-a možete pronaći na ovom [linku](https://asn.ipinfo.app/search), dok link do liste izgleda ovako ```https://asn.ipinfo.app/api/text/list/AS<<ASN-BROJ>>```.
  
  Primer: [Informacije o ASN-u](https://asn.ipinfo.app/AS49402), [Lista ASN IP adresa](https://asn.ipinfo.app/api/text/list/AS49402)
  
- - Schedule objekti - U slučaju da je to potrebno, može se definisati vreme tokom kojeg je aktivno Security pravilo. U slučaju da je to više slotova, može se definisati i Schedule grupa.
+ - Schedule objekti - Po potrebi, može se definisati vreme tokom kojeg je aktivno Security pravilo. U slučaju da je to više slotova, može se definisati i Schedule grupa.
  
  - Negate opcija - Za svaki objekat se može definisati negacija u okviru pravila negate opcijom.
  
- - Korisničke grupe - U Security pravilu se može izvršiti filtracija po grupama. To je široka tema koja deli tipove prisutpa na pasivnu i aktivnu autentifikaciju korisnika.
+ - Korisničke grupe - U Security pravilu se može izvršiti filtracija po grupama. Ovo je šira tema koja obuhvata tipove pristupa na pasivnu i aktivnu autentifikaciju korisnika.
  
  [User & Authentication](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/732715/user-definition-groups-and-settings)
 
 
 ### Send packet deny opcija
-Podrazumevana podešavanja FortiGate firewall-a nalažu da uređaj 'tiho' ispušta pakete bez obaveštenja korisnika. Većina drugih proizvođača šalje ICMP poruku Source IP adresi kao potvrdu da je paket blokiran od strane firewall-a. Slično ponašanje se može uključiti i na FortiGate firewall-ima.
+Podrazumevana podešavanja FortiGate firewall-a nalažu da uređaj 'tiho' odbacuje pakete bez obaveštenja korisnika. Većina drugih proizvođača šalje ICMP poruku Source IP adresi kao potvrdu da je saobraćaj blokiran od strane firewall-a. Slično ponašanje se može uključiti i na FortiGate firewall-ima.
 ```
 config firewall policy
 	edit <ID-SECURITY-PRAVILA>
