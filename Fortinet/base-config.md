@@ -802,11 +802,11 @@ Treba napomenuti da se slični objekti koriste u produkcionim okruženjima na ra
 
 ### Eksterni konektori
 FortiGate podržava različite tipove eksternih konektora kroz threat feed-ove. Koncentrisaćemo se na one koje se koriste u različitim segmentima Local-in i Security polisa.
- - FortiGuard Category Threat Feed -- Koristi se za povlačenje eksternih lista URL-ova koji se referenciraju u Web filtering-u.
+ - FortiGuard Category Threat Feed - Koristi se za povlačenje eksternih lista URL-ova koji se referenciraju u Web filtering-u.
  - IP Address Threat Feed - Koristi se za povlačenje eksternih lista IP adresa koji se referenciraju u Local-in i Security polisama kao source i destinacioni objekti.
- - Domain Name Threat Feed -- Koristi se za povlačenje eksternih lista domenskih imena koji se referenciraju u DNS filtering-u.
- - MAC Address Threat Feed -- Koristi se za povlačenje eksternih lista MAC adresa koji se referenciraju u Security polisi, između ostalog.
- - Malware Hash Threat Feed -- Koristi se za povlačenje eksternih lista Hash-eva koji se referenciraju u Antivirus profilima.
+ - Domain Name Threat Feed - Koristi se za povlačenje eksternih lista domenskih imena koji se referenciraju u DNS filtering-u.
+ - MAC Address Threat Feed - Koristi se za povlačenje eksternih lista MAC adresa koji se referenciraju u Security polisi, između ostalog.
+ - Malware Hash Threat Feed - Koristi se za povlačenje eksternih lista Hash-eva koji se referenciraju u Antivirus profilima.
 
 [Fortinet Security Fabric: External feeds](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/9463/external-feeds)
 
