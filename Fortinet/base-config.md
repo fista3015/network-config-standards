@@ -861,7 +861,7 @@ Baseline pravila se definišu sa sličnim objektima:
 	- [BBcan177 MS3 Block IPs](https://gist.githubusercontent.com/BBcan177/d7105c242f17f4498f81/raw/f69be712a06e998191adfe4c86d74e8cacf08d28/MS-3)
 	- [CINSscore Bad Guys](http://cinsscore.com/list/ci-badguys.txt)
 	- [Blocklist.de](https://lists.blocklist.de/lists/all.txt)
- - ASN objekti - U okviru eksternih objekata se može definisati i blokiranje po AS broju mreže servis provajdera. Pretraživanje ASN-a možete naći na ovom [linku](https://asn.ipinfo.app/search), dok link do liste izgleda ovako **https://asn.ipinfo.app/api/text/list/AS<ASN-BROJ>**.
+ - ASN objekti - U okviru eksternih objekata se može definisati i blokiranje po AS broju mreže servis provajdera. Pretraživanje ASN-a možete naći na ovom [linku](https://asn.ipinfo.app/search), dok link do liste izgleda ovako **https://asn.ipinfo.app/api/text/list/AS<<ASN-BROJ>>**.
  
  Primer: [Informacije o ASN-u](https://asn.ipinfo.app/AS49402), [Lista ASN IP adresa](https://asn.ipinfo.app/api/text/list/AS49402)
 
