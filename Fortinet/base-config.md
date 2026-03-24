@@ -844,12 +844,29 @@ Konfiguracija local-in polise obuhvata segment zaštite uređaja na L4 nivou. Od
 [Local-in Policies: Virtual patching on the local-in management interface](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/393161/virtual-patching-on-the-local-in-management-interface)
 
 
-
-
-
 ### Security polisa
-Konfiguracija security polise je isrcpan proces sa velikim brojem opcija koje administrator ima, kako bi što preciznije definisao tip saobraćaja koji hoće da propusti. U ovom delu teksta se koncentrišemo na baseline pravila koja se preporučuju prilikom inicijalnog definisanja pravila.
+Security polisa je sastavljena od pravila koje blokiraju ili dopuštaju saobraćaj koji prolazi kroz FortiGate firewall.
+
+Konfiguracija security polise je isrcpan proces sa velikim brojem opcija koje su dostupne administratoru, kako bi što preciznije definisao tip saobraćaja koji hoće da propusti. U ovom delu teksta se koncentrišemo na baseline pravila koja se preporučuju prilikom inicijalnog definisanja pravila.
+
+Na sličan način Local-in polisi se konfigurišu i pravila za Security polisu.
+Baseline pravila se definišu sa sličnim objektima:
+ - ISDB objekti - Treba obratiti pažnju na smer ISDB objekta. U zavisnosti od toga da li se ISDB objekat koristi za Source ili Destinaciju u Security pravilima, potrebno je izmeniti grupu sa objektima.
+ - Geografski objekti - Za saobraćaj sa interneta ka internoj mreži se mogu definisati samo države sa kojih je moguć pristup. Za saobraćaj ka internetu se može blokirati pristup ka državama za koje pristup nikad nije potreban(Kina, Severna Koreja, Rusija, Sirija, Iran, Brazil...)
+ - Eksterni objekti - U nastavku ostavljamo listu eksternih IP lista koje koristimo na nekim od projekata:
+	- [Cumry Bogon lista](https://www.team-cymru.org/Services/Bogons/fullbogons-ipv4.txt)
+	- [Emerging threats Block IPs](https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt)
+	- [Emerging threats Compromised IPs](https://rules.emergingthreats.net/blockrules/compromised-ips.txt)
+	- [BBcan177 MS1 Block IPs](https://gist.githubusercontent.com/BBcan177/bf29d47ea04391cb3eb0/raw/)
+	- [BBcan177 MS3 Block IPs](https://gist.githubusercontent.com/BBcan177/d7105c242f17f4498f81/raw/f69be712a06e998191adfe4c86d74e8cacf08d28/MS-3)
+	- [CINSscore Bad Guys](http://cinsscore.com/list/ci-badguys.txt)
+	- [Blocklist.de](https://lists.blocklist.de/lists/all.txt)
+ - ASN objekti - U okviru eksternih objekata se može definisati i blokiranje po AS broju mreže servis provajdera. Pretraživanje ASN-a možete naći na ovom [linku](https://asn.ipinfo.app/search), dok link do liste izgleda ovako **https://asn.ipinfo.app/api/text/list/AS<ASN-BROJ>**.
+ 
+ Primer: [Informacije o ASN-u](https://asn.ipinfo.app/AS49402), [Lista ASN IP adresa](https://asn.ipinfo.app/api/text/list/AS49402)
 
 
+
+ 
 
 ## Security profili
