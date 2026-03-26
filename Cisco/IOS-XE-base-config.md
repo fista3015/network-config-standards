@@ -102,6 +102,21 @@ Komandom ispod proveravamo verziju nakon pokretanja sviča.
 show version
 ```
 
+Modeli svičeva Cisco Catalyst 9400, 9500 i 9600 podržavaju i ISSU(In-Service Software Upgrade) pored SMU načina. ISSU se izvršava na sličan način kao i SMU. Razlike su u prikazu stanja.
+```
+show redudancy
+show issu details
+```
+
+Instaliranje softverske verzije se izvršava komandom ispod.
+```
+install add file flash:<IME-FAJLA> activate issu commit
+```
+
+[SMU upgrade procedura](https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9200/software/release/17-10/release_notes/ol-17-10-9200/upgrading_the_switch_software.html)
+[ISSU upgrade procedura](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9400-series-switches/222283-upgrading-catalyst-9400-switches.html#toc-hId-1788513133)
+
+
 ### Isključivanje opcije automatskog upgrade-a
 Za uređaje koji su vezani na FortiGate Cloud, podrazumevano podešavanje je automatski upgrade na najnoviju verziju firmware-a na istoj major verziji. Preporučuje se isključivanje te opcije. 
 ``` 
