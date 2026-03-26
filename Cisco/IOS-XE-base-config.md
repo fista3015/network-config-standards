@@ -1,17 +1,17 @@
-# FortiGate baseline konfiguracija prilikom inicijalizacije uređaja
+# Cisco IOS XE baseline konfiguracija prilikom inicijalizacije uređaja
 
 ***[DRAFT VERZIJA!!!]***
 
-Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pre implementacije u produkciono okruženje.
+Baseline konfiguracija Cisco IOS XE svičeva prilikom inicijalizacije uređaja pre implementacije u produkciono okruženje.
 
 - [Početak dokumenta](#fortigate-baseline-konfiguracija-prilikom-inicijalizacije-uređaja)
 	- [Sistemska podešavanja](#sistemska-podešavanja)
-		- [Podešavanje imena uređaja](#podešavanja-imena-uređaja)
-		- [Upgrade firewall uređaja](#upgrade-firewall-uređaja)
-		- [Isključivanje opcije automatskog upgrade-a](#isključivanje-opcije-automatskog-upgrade-a)
+		- [Podešavanje imena sviča](#podešavanja-imena-sviča)
+		- [Upgrade sviča](#upgrade-sviča)
 		- [Konfiguracija DNS servera](#konfiguracija-dns-servera)
 		- [Konfiguracija NTP servera](#konfiguracija-ntp-servera)
 		- [Konfiguracija SNMP servera](#konfiguracija-snmp-servera)
+		- [Kreiranje aliasa komande](#kreiranje-aliasa-komande)
 		- [FortiGate HA menadžment interfejs](#fortigate-ha-menadžment-interfejs)
 	- [Konfiguracija High-Availability(HA)](#konfiguracija-high-availabilityha)
 		- [Inicijalna konfiguracija HA](#inicijalna-konfiguracija-ha)
@@ -61,19 +61,46 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 
 
 ### Podešavanja imena uređaja
-Podrazumevana konfiguracija je da je ime uređaja serijski broj. Preporučuje se podešavanje imena bez razmaka sa donjom crtom(_) i crticom(-).
+Podrazumevana konfiguracija je da je ime uređaja ```Switch```. Preporučuje se podešavanje imena bez razmaka sa donjom crtom(_) i crticom(-).
 ```
-config system global
-	set hostname <IME-UREĐAJA>
-end
+hostname <IME-UREĐAJA>
 ```
 
+Ako dodeljeno ime više od 20 karaktera, svič prikazuje upozorenje u porekoračenju broja karaktera. Iako će se ime promeniti, limit za prikaz upozorenja može da se modifikuje pomoću komande ```prompt config hostname-length <DUŽINA-IMENA>```.
 
-### Upgrade firewall uređaja
-Potrebno je redovno pratiti novosti PSIRT-a vezane za slabosti firmware verzija uređaja. Kada se pronađe slabost, potrebno je da se zakrpi u što kraćem vremenskom roku.
+### Upgrade sviča
+U trenutku pisanja, Cisco preporučuje softverske verzije 17.15.4 i 17.12.6 za IOS-XE Cisco Catalyst 9200, 9300, 9400, 9500 i 9600 modele.
 
-[Technical Tip: Recommended release for FortiOS](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Recommended-release-for-FortiOS/ta-p/227178)
+U ovom delu će biti definisana upgrade procedura za modele Cisco Catalyst 9200 i 9300 svičeve. Kako bi izvršili SMU(Software Maintence Upgrade) koji se zove još i cold patching, zbog prekida saobraćaja kroz uređaj tokom procesa nadogradnje.
 
+Prvi korak nadogradnje je upload softverske verzije na uređaj. Cisco svičevi podržavaju veliki broj protokola za transfer fajlova, preporučeni su sigurni protokoli: SCP ili SFTP. Naknadno, transfer se može izvršiti i preko USB diska, sa time da je preporuka izvršiti formatiranje diska na FAT32, sa veličinom od 2GB ili 4GB. Pre transfera fajla na svič, preporučuje se brisanje svih softverskih verzija koje se ne koriste.
+```
+install remove inactive
+copy <UPLOAD-PROTOKOL>:<SERVER>/<PUTANJA>/<IME-FAJLA> flash:<IME-FAJLA>
+dir flash:<IME-FAJLA>
+```
+
+Poslednjom komandom proveravamo uspešnost prebacivanja softverske verzije na svič.
+
+Nakon toga je potrebno promeniti boot varijablu i prebaciti način pokretanja sviča.
+```
+boot system flash:package.conf
+no boot manual
+write memory
+show boot
+```
+
+Poslednjom komandom proveravamo promenu boot varijable.
+
+Za kraj je potrebno instalirati softversku verziju na flash. Potvrdom procesa se svič restartuje i pokreće sa novom verzijom.
+```
+install add file flash:<IME-FAJLA> activate commit
+```
+
+Komandom ispod proveravamo verziju nakon pokretanja sviča.
+```
+show version
+```
 
 ### Isključivanje opcije automatskog upgrade-a
 Za uređaje koji su vezani na FortiGate Cloud, podrazumevano podešavanje je automatski upgrade na najnoviju verziju firmware-a na istoj major verziji. Preporučuje se isključivanje te opcije. 
@@ -194,6 +221,9 @@ end
 ```
 
 Kada su FortiGate u HA, moguće je da uređaji šalju SNMP trap pakete kroz ```ha-mgmt-interface```. To se ne preporučuje, zbog problema sa local-out saobraćajem FortiGate-a.
+
+
+### Kreiranje aliasa komande
 
 
 ### FortiGate HA menadžment interfejs
@@ -662,10 +692,232 @@ end
 ## Logovanje i performanse uređaja
 
 
+### Kreiranje revizije nakon logout
+Preporučuje se paljenje opcije kreiranja revizije na FortiGate uređaju lokalno, ako ne postoji FortiManager ili lokalni repozitorijum sa automatski bekap uređaja. 
+``` 
+config system global
+    set revision-backup-on-logout enable
+end
+```
+
+
+### Uključivanje korišćenja CDN-a
+Preporučena konfiguracija za korišćenje CDN-a za ubrzavanje GUI odziva. Podrazumevana konfiguracija je da je opcija upaljena, ali treba znati za nju.
+``` 
+config system global
+    set gui-cdn-usage enable
+end
+```
+
+[Loading artifacts from a CDN for improved GUI performance](https://docs.fortinet.com/document/fortigate/7.0.0/new-features/205105/loading-artifacts-from-a-cdn-for-improved-gui-performance-7-0-4)
+
+
+### Uključivanje korišćenja lokalnog ISDB keša
+FortiGate lokalno čuva ISDB ulaze za veliki broj servisa. Korišćenje lokalnog keša pomaže u smanjivanju opterećenja manjih uređaja kod povlačenja razlike ulaza.
+``` 
+config system settings
+    set internet-service-database-cache enable
+end
+```
+
+
+### Uključivanje automatske provere diska
+Kada FortiGate uređaj ima SSD, prilikom neočekivanog reboot-a, potrebno je da se odradi manuelna provera diska za šta je potreban reboot. Automatskom proverom diska izbegavamo dodatni reboot.
+``` 
+config system global
+    set autorun-log-fsck enable
+end
+```
+
+
+### Logovanje CLI komandi
+Podrazumevano, FortiGate ne loguje CLI komande.
+``` 
+config system global
+    set cli-audit-log enable
+end
+```
+
+[Technical Tip: Enable audit log via CLI](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Enable-audit-log-via-CLI/ta-p/266822)
+
+
+### Proširenje logovanja i prikaza logova
+Podrazumevana podešavanja ne loguju implicit deny pravila, local-in i local-out saobraćaj, dodatno logovanje, razrešavanje IP adresa i portova, API akcije i mapiranje imena zona.
+``` 
+config log setting
+    set fwpolicy-implicit-log enable
+    set local-in-allow enable
+    set local-in-deny-unicast enable
+    set local-in-deny-broadcast enable
+    set local-out enable
+    set extended-log enable
+    set extended-utm-log enable
+    set resolve-ip enable
+    set resolve-port enable
+    set rest-api-set enable
+    set rest-api-get enable
+    set zone-name enable
+end
+config log memory filter
+    set local-traffic enable
+end
+```
+
+
+### Uključivanje logovanja na disk
+FortiGate sa diskom bi trebalo da loguje saobraćaj na disk, pri čemu, kada se popuni disk, brisanje kreće od najstarijih ka novijim logovima.
+``` 
+config log disk setting
+    set status enable
+    set maximum-log-age 0
+end
+```
+
+[Technical Tip: How to configure logging to disk on the FortiGate using the GUI or the CLI](https://community.fortinet.com/t5/FortiGate/Technical-Tip-How-to-configure-logging-to-disk-on-the-FortiGate/ta-p/216995)
+
+
 
 
 
 ## Firewall polise
+Firewall Security obuhvata dva seta polisa:
+ - Local-in polisa
+ - Security polisa
+
+Svaka polisa koristi različite tipove objekata koji su detaljnije definisani ispod.
+
+### Geografski objekti
+Geografski objekti su predefinisane liste IP adresa koje pripadaju internet provajderima u određenim državama. Mogu se koristiti u različitim polisama, između ostalog u local-in polisi. U budućnosti ćemo pomenuti Threat feed-ove koji sadrže liste IP adresa provajdera definisani kroz njihov jedinstveni AS broj.
+```
+config firewall address
+	edit <IME-GEO-OBJEKTA1>
+		set type geography
+		set country "<ŠIFRA-DRŽAVE1>"
+	next
+	edit <IME-GEO-OBJEKTA2>
+		set type geography
+		set country "<ŠIFRA-DRŽAVE2>"
+	next
+end
+```
+
+### ISDB objekti
+ISDB objekti su lista internet servisa koji sadrže mapiranje destinacionih IP adresa i portova.
+
+Preporuka je kreiranje tri tipa ISDB grupa:
+ - Grupa sa malicioznim internet servisima
+ - Grupa sa vendorskim internet skenerima
+ - Grupa sa opsezima vendora za hosting servise
+```
+config firewall internet-service-group
+	edit <IME-ISDB-GRUPE1>
+		set direction source
+		set member "VPN-Anonymous.VPN" "Tor-Tor.Node" "Tor-Relay.Node" "Tor-Exit.Node" "Spam-Spamming.Server" "Proxy-Proxy.Server" "Phishing-Phishing.Server" "Malicious-Malicious.Server" "Hosting-Bulletproof.Hosting" "Botnet-C&C.Server"
+	next
+	edit <IME-ISDB-GRUPE2>
+		set direction source
+		set member "Censys-Scanner" "Stretchoid-Scanner" "InterneTTL-Scanner" "Shodan-Scanner" "Tenable-Tenable.io.Cloud.Scanner" "NetScout-Scanner" "Recyber-Scanner" "Cyber.Casa-Scanner" "BinaryEdge-Scanner" "UK.NCSC-Scanner" "CriminalIP-Scanner" "Internet.Census.Group-Scanner" "Shadowserver-Scanner" "LeakIX-Scanner" "Hadrian-Scanner" "Rapid7-Scanner" "ONYPHE-Scanner" "Modat-Scanner" "Palo.Alto.Networks-Cortex.Xpanse.Scanner"
+	next
+	edit <IME-ISDB-GRUPE3>
+		set direction source
+		set member "Hosting-Bulletproof.Hosting" "ColoCrossing-ColoCrossing.Hosting.Service" "THE.Hosting-THE.Hosting.Hosting.Service" "SERVERD-SERVERD.Hosting.Service" "EGI-EGI.Hosting.Service" "M247-M247.Hosting.Service" "Quintex-Quintex.Hosting.Service" "Aeza-Aeza.Hosting.Service" "Amanah-Amanah.Hosting.Service" "Cloudzy-Cloudzy.Hosting.Service" "3xK-3xK.Hosting.Service"
+	next
+end
+```
+ 
+Slične objekte koristimo u produkcionim okruženjima na određenim projektima.
+
+[Policy and Objects: Internet Services](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/849970/internet-services)
+
+
+### Eksterni konektori
+FortiGate podržava različite tipove eksternih konektora kroz threat feed-ove. Fokusiraćemo se na one koje se koriste u različitim segmentima Local-in i Security polisa.
+ - FortiGuard Category Threat Feed - Koristi se za povlačenje eksternih lista URL-ova koji se referenciraju u Web filtering-u.
+ - IP Address Threat Feed - Koristi se za povlačenje eksternih lista IP adresa koji se referenciraju u Local-in i Security polisama kao source i destinacioni objekti.
+ - Domain Name Threat Feed - Koristi se za povlačenje eksternih lista domenskih imena koji se referenciraju u DNS filtering-u.
+ - MAC Address Threat Feed - Koristi se za povlačenje eksternih lista MAC adresa koji se referenciraju u Security polisi, između ostalog.
+ - Malware Hash Threat Feed - Koristi se za povlačenje eksternih lista Hash-eva koji se referenciraju u Antivirus profilima.
+
+[Fortinet Security Fabric: External feeds](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/9463/external-feeds)
+
+
+### Local-in polisa
+Local-in polisa sadrži pravila koja dozvoljavaju pristup koji se terminira(počinje i završava) na samim interfejsima FortiGate uređaja.
+
+Kada se omogući menadžment servis na samom interfejsu, ili se upali funkcionalnost, automatski se kreira Local-in pravilo.
+```
+config firewall local-in-policy
+	edit 0
+		set intf <IME-WAN-INTERFEJSA>
+		set dstaddr all
+		set internet-service-src enable
+		set internet-service-src-group <IME-ISDB-GRUPE1> <IME-ISDB-GRUPE2> <IME-ISDB-GRUPE3>
+		set action deny
+	next
+	edit 0
+		set intf <IME-WAN-INTERFEJSA>
+		set dstaddr all
+		set srcaddr-negate enable
+		set srcaddr <IME-GEO-OBJEKTA1> <IME-GEO-OBJEKTA2>
+		set action deny
+		set service <IME-SERVISNE-GRUPE>
+	next
+end
+```
+
+[Technical Tip: Creating a Local-In policy (IPv4 and IPv6) on GUI](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Creating-a-Local-In-policy-IPv4-and-IPv6-on-GUI/ta-p/326547)
+
+
+### Virtual Patching
+Konfiguracija local-in polise obuhvata segment zaštite uređaja na L4 nivou. Od verzije 7.4.1, uveden je koncept virtual patching-a, gde uređaj koristi IPS bazu kako bi blokirao pokušaje eksploatacije poznatih ranjivosti FortiGate uređaja. Virtual patching se između ostalog može koristiti i u local-in pravilima.
+
+[Local-in Policies: Virtual patching on the local-in management interface](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/393161/virtual-patching-on-the-local-in-management-interface)
+
+
+### Security polisa
+Security polisa je sastavljena od pravila koja blokiraju ili dopuštaju saobraćaj koji prolazi kroz FortiGate firewall.
+
+Konfiguracija security polise je iscrpan proces sa velikim brojem opcija koje su dostupne administratoru, kako bi što preciznije definisao tip saobraćaja koji želi da propusti. U ovom delu teksta se koncentrišemo na baseline pravila koja se preporučuju prilikom inicijalnog definisanja pravila.
+
+Na sličan način kao i Local-in polisa se konfigurišu i pravila za Security polisu.
+Baseline pravila se definišu sa sličnim objektima:
+ - ISDB objekti - Treba obratiti pažnju na smer ISDB objekta. U zavisnosti od toga da li se ISDB objekat koristi za Source ili Destinaciju u Security pravilima, potrebno je prilagoditi grupu objekata.
+
+ - Geografski objekti - Za saobraćaj sa interneta ka internoj mreži se mogu definisati samo države sa kojih je moguć pristup. Za saobraćaj ka internetu se može blokirati pristup ka državama za koje pristup nikad nije potreban(kao što su Kina, Severna Koreja, Rusija, Sirija, Iran, Brazil...)
+
+ - Eksterni objekti - U nastavku ostavljamo nabrojane eksterne IP liste koje koristimo na nekim od projekata:
+	- [Cumry Bogon lista](https://www.team-cymru.org/Services/Bogons/fullbogons-ipv4.txt)
+	- [Emerging threats Block IPs](https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt)
+	- [Emerging threats Compromised IPs](https://rules.emergingthreats.net/blockrules/compromised-ips.txt)
+	- [BBcan177 MS1 Block IPs](https://gist.githubusercontent.com/BBcan177/bf29d47ea04391cb3eb0/raw/)
+	- [BBcan177 MS3 Block IPs](https://gist.githubusercontent.com/BBcan177/d7105c242f17f4498f81/raw/f69be712a06e998191adfe4c86d74e8cacf08d28/MS-3)
+	- [CINSscore Bad Guys](http://cinsscore.com/list/ci-badguys.txt)
+	- [Blocklist.de](https://lists.blocklist.de/lists/all.txt)
+
+ - ASN objekti - U okviru eksternih objekata se može definisati i blokiranje po AS broju mreže servis provajdera. Pretragu ASN-a možete pronaći na ovom [linku](https://asn.ipinfo.app/search), dok link do liste izgleda ovako ```https://asn.ipinfo.app/api/text/list/AS<<ASN-BROJ>>```.
+ 
+ Primer: [Informacije o ASN-u](https://asn.ipinfo.app/AS49402), [Lista ASN IP adresa](https://asn.ipinfo.app/api/text/list/AS49402)
+ 
+ - Schedule objekti - Po potrebi, može se definisati vreme tokom kojeg je aktivno Security pravilo. U slučaju da je to više slotova, može se definisati i Schedule grupa.
+ 
+ - Negate opcija - Za svaki objekat se može definisati negacija u okviru pravila negate opcijom.
+ 
+ - Korisničke grupe - U Security pravilu se može izvršiti filtracija po grupama. Ovo je šira tema koja obuhvata tipove pristupa na pasivnu i aktivnu autentifikaciju korisnika.
+ 
+ [User & Authentication](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/732715/user-definition-groups-and-settings)
+
+
+### Send packet deny opcija
+Podrazumevana podešavanja FortiGate firewall-a nalažu da uređaj 'tiho' odbacuje pakete bez obaveštenja korisnika. Većina drugih proizvođača šalje ICMP poruku Source IP adresi kao potvrdu da je saobraćaj blokiran od strane firewall-a. Slično ponašanje se može uključiti i na FortiGate firewall-ima.
+```
+config firewall policy
+	edit <ID-SECURITY-PRAVILA>
+		set send-deny-packet enable
+	next
+end
+```
+
+[Troubleshooting Tip: FortiGate did not reply with TCP RST when 'set send-deny-packet' is enabled](https://community.fortinet.com/t5/FortiGate/Troubleshooting-Tip-FortiGate-did-not-reply-with-TCP-RST-when/ta-p/379841)
 
 
 
