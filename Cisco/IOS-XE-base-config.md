@@ -68,6 +68,7 @@ hostname <IME-UREĐAJA>
 
 Ako dodeljeno ime više od 20 karaktera, svič prikazuje upozorenje u porekoračenju broja karaktera. Iako će se ime promeniti, limit za prikaz upozorenja može da se modifikuje pomoću komande ```prompt config hostname-length <DUŽINA-IMENA>```.
 
+
 ### Upgrade sviča
 U trenutku pisanja, Cisco preporučuje softverske verzije 17.15.4 i 17.12.6 za IOS-XE Cisco Catalyst 9200, 9300, 9400, 9500 i 9600 modele.
 
@@ -117,19 +118,8 @@ install add file flash:<IME-FAJLA> activate issu commit
 [ISSU upgrade procedura](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9400-series-switches/222283-upgrading-catalyst-9400-switches.html#toc-hId-1788513133)
 
 
-### Isključivanje opcije automatskog upgrade-a
-Za uređaje koji su vezani na FortiGate Cloud, podrazumevano podešavanje je automatski upgrade na najnoviju verziju firmware-a na istoj major verziji. Preporučuje se isključivanje te opcije. 
-``` 
-config system fortiguard
-    set auto-firmware-upgrade disable
-end
-```
-
-[Technical Tip: Understanding automatic patch upgrade](https://community.fortinet.com/t5/FortiGate-Cloud/Technical-Tip-Understanding-automatic-patch-upgrade-FortiGate/ta-p/316549)
-
-
 ### Konfiguracija DNS servera
-Podrazumevana vrednost su FortiGuard DNS serveri. Preporuka je da se promene na interne DNS servere.
+Na svičevima je potrebno konfigurisati DNS servere.
 
 U slučaju da ne postoji interni DNS server, preporuka je korišćenje javnih Cisco Umbrella DNS servera:
 ``` 
@@ -139,15 +129,10 @@ U slučaju da ne postoji interni DNS server, preporuka je korišćenje javnih Ci
 
 Pored toga, preporučuje se promena DNS protokola, najčešće je u pitanju DNS preko UDP/TCP porta 53, odnosno cleartext DNS.
 ``` 
-config system dns
-    set primary <IP-DNS-PRIMARNI>  
-    set secondary <IP-DNS-SEKUNDARNI>  
-    set protocol cleartext 
-end
+ip domain-name <IME-DOMENA>
+ip name-server <DNS-SERVER1> <DNS-SERVER2>
+ip domain-lookup
 ```
-
-U slučaju da je to potrebno, FortiGate može biti DNS server:
-[Administration Guide: FortiGate DNS server](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/960561/fortigate-dns-server)
 
 
 ### Konfiguracija NTP servera
