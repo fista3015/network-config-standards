@@ -99,7 +99,8 @@ Pored toga, preporučuje se promena DNS protokola, najčešće je u pitanju DNS 
 ``` 
 config system dns
     set primary <IP-DNS-PRIMARNI>  
-    set secondary <IP-DNS-SEKUNDARNI>  
+    set secondary <IP-DNS-SEKUNDARNI>
+	set domain <IME-DOMENA>
     set protocol cleartext 
 end
 ```
