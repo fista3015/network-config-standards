@@ -1,17 +1,17 @@
-# FortiGate baseline konfiguracija prilikom inicijalizacije uređaja
+# Cisco IOS XE baseline konfiguracija prilikom inicijalizacije uređaja
 
 ***[DRAFT VERZIJA!!!]***
 
-Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pre implementacije u produkciono okruženje.
+Baseline konfiguracija Cisco IOS XE svičeva prilikom inicijalizacije uređaja pre implementacije u produkciono okruženje.
 
 - [Početak dokumenta](#fortigate-baseline-konfiguracija-prilikom-inicijalizacije-uređaja)
 	- [Sistemska podešavanja](#sistemska-podešavanja)
-		- [Podešavanje imena uređaja](#podešavanja-imena-uređaja)
-		- [Upgrade firewall uređaja](#upgrade-firewall-uređaja)
-		- [Isključivanje opcije automatskog upgrade-a](#isključivanje-opcije-automatskog-upgrade-a)
+		- [Podešavanje imena sviča](#podešavanja-imena-sviča)
+		- [Upgrade sviča](#upgrade-sviča)
 		- [Konfiguracija DNS servera](#konfiguracija-dns-servera)
 		- [Konfiguracija NTP servera](#konfiguracija-ntp-servera)
 		- [Konfiguracija SNMP servera](#konfiguracija-snmp-servera)
+		- [Kreiranje aliasa komande](#kreiranje-aliasa-komande)
 		- [FortiGate HA menadžment interfejs](#fortigate-ha-menadžment-interfejs)
 	- [Konfiguracija High-Availability(HA)](#konfiguracija-high-availabilityha)
 		- [Inicijalna konfiguracija HA](#inicijalna-konfiguracija-ha)
@@ -61,18 +61,60 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 
 
 ### Podešavanja imena uređaja
-Podrazumevana konfiguracija je da je ime uređaja serijski broj. Preporučuje se podešavanje imena bez razmaka sa donjom crtom(_) i crticom(-).
+Podrazumevana konfiguracija je da je ime uređaja ```Switch```. Preporučuje se podešavanje imena bez razmaka sa donjom crtom(_) i crticom(-).
 ```
-config system global
-	set hostname <IME-UREĐAJA>
-end
+hostname <IME-UREĐAJA>
 ```
 
+Ako dodeljeno ime više od 20 karaktera, svič prikazuje upozorenje u porekoračenju broja karaktera. Iako će se ime promeniti, limit za prikaz upozorenja može da se modifikuje pomoću komande ```prompt config hostname-length <DUŽINA-IMENA>```.
 
-### Upgrade firewall uređaja
-Potrebno je redovno pratiti novosti PSIRT-a vezane za slabosti firmware verzija uređaja. Kada se pronađe slabost, potrebno je da se zakrpi u što kraćem vremenskom roku.
+### Upgrade sviča
+U trenutku pisanja, Cisco preporučuje softverske verzije 17.15.4 i 17.12.6 za IOS-XE Cisco Catalyst 9200, 9300, 9400, 9500 i 9600 modele.
 
-[Technical Tip: Recommended release for FortiOS](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Recommended-release-for-FortiOS/ta-p/227178)
+U ovom delu će biti definisana upgrade procedura za modele Cisco Catalyst 9200 i 9300 svičeve. Kako bi izvršili SMU(Software Maintence Upgrade) koji se zove još i cold patching, zbog prekida saobraćaja kroz uređaj tokom procesa nadogradnje.
+
+Prvi korak nadogradnje je upload softverske verzije na uređaj. Cisco svičevi podržavaju veliki broj protokola za transfer fajlova, preporučeni su sigurni protokoli: SCP ili SFTP. Naknadno, transfer se može izvršiti i preko USB diska, sa time da je preporuka izvršiti formatiranje diska na FAT32, sa veličinom od 2GB ili 4GB. Pre transfera fajla na svič, preporučuje se brisanje svih softverskih verzija koje se ne koriste.
+```
+install remove inactive
+copy <UPLOAD-PROTOKOL>:<SERVER>/<PUTANJA>/<IME-FAJLA> flash:<IME-FAJLA>
+dir flash:<IME-FAJLA>
+```
+
+Poslednjom komandom proveravamo uspešnost prebacivanja softverske verzije na svič.
+
+Nakon toga je potrebno promeniti boot varijablu i prebaciti način pokretanja sviča.
+```
+boot system flash:package.conf
+no boot manual
+write memory
+show boot
+```
+
+Poslednjom komandom proveravamo promenu boot varijable.
+
+Za kraj je potrebno instalirati softversku verziju na flash. Potvrdom procesa se svič restartuje i pokreće sa novom verzijom.
+```
+install add file flash:<IME-FAJLA> activate commit
+```
+
+Komandom ispod proveravamo verziju nakon pokretanja sviča.
+```
+show version
+```
+
+Modeli svičeva Cisco Catalyst 9400, 9500 i 9600 podržavaju i ISSU(In-Service Software Upgrade) pored SMU načina. ISSU se izvršava na sličan način kao i SMU. Razlike su u prikazu stanja.
+```
+show redudancy
+show issu details
+```
+
+Instaliranje softverske verzije se izvršava komandom ispod.
+```
+install add file flash:<IME-FAJLA> activate issu commit
+```
+
+[SMU upgrade procedura](https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9200/software/release/17-10/release_notes/ol-17-10-9200/upgrading_the_switch_software.html)
+[ISSU upgrade procedura](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9400-series-switches/222283-upgrading-catalyst-9400-switches.html#toc-hId-1788513133)
 
 
 ### Isključivanje opcije automatskog upgrade-a
@@ -99,8 +141,7 @@ Pored toga, preporučuje se promena DNS protokola, najčešće je u pitanju DNS 
 ``` 
 config system dns
     set primary <IP-DNS-PRIMARNI>  
-    set secondary <IP-DNS-SEKUNDARNI>
-	set domain <IME-DOMENA>
+    set secondary <IP-DNS-SEKUNDARNI>  
     set protocol cleartext 
 end
 ```
@@ -195,6 +236,9 @@ end
 ```
 
 Kada su FortiGate u HA, moguće je da uređaji šalju SNMP trap pakete kroz ```ha-mgmt-interface```. To se ne preporučuje, zbog problema sa local-out saobraćajem FortiGate-a.
+
+
+### Kreiranje aliasa komande
 
 
 ### FortiGate HA menadžment interfejs
@@ -867,7 +911,7 @@ Baseline pravila se definišu sa sličnim objektima:
 
  - ASN objekti - U okviru eksternih objekata se može definisati i blokiranje po AS broju mreže servis provajdera. Pretragu ASN-a možete pronaći na ovom [linku](https://asn.ipinfo.app/search), dok link do liste izgleda ovako ```https://asn.ipinfo.app/api/text/list/AS<<ASN-BROJ>>```.
  
-	Primer: [Informacije o ASN-u](https://asn.ipinfo.app/AS49402), [Lista ASN IP adresa](https://asn.ipinfo.app/api/text/list/AS49402)
+ Primer: [Informacije o ASN-u](https://asn.ipinfo.app/AS49402), [Lista ASN IP adresa](https://asn.ipinfo.app/api/text/list/AS49402)
  
  - Schedule objekti - Po potrebi, može se definisati vreme tokom kojeg je aktivno Security pravilo. U slučaju da je to više slotova, može se definisati i Schedule grupa.
  
@@ -875,7 +919,7 @@ Baseline pravila se definišu sa sličnim objektima:
  
  - Korisničke grupe - U Security pravilu se može izvršiti filtracija po grupama. Ovo je šira tema koja obuhvata tipove pristupa na pasivnu i aktivnu autentifikaciju korisnika.
  
-	[User & Authentication](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/732715/user-definition-groups-and-settings)
+ [User & Authentication](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/732715/user-definition-groups-and-settings)
 
 
 ### Send packet deny opcija
