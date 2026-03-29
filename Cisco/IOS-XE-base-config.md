@@ -68,6 +68,7 @@ hostname <IME-UREĐAJA>
 
 Ako dodeljeno ime više od 20 karaktera, svič prikazuje upozorenje u porekoračenju broja karaktera. Iako će se ime promeniti, limit za prikaz upozorenja može da se modifikuje pomoću komande ```prompt config hostname-length <DUŽINA-IMENA>```.
 
+
 ### Upgrade sviča
 U trenutku pisanja, Cisco preporučuje softverske verzije 17.15.4 i 17.12.6 za IOS-XE Cisco Catalyst 9200, 9300, 9400, 9500 i 9600 modele.
 
@@ -117,19 +118,8 @@ install add file flash:<IME-FAJLA> activate issu commit
 [ISSU upgrade procedura](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9400-series-switches/222283-upgrading-catalyst-9400-switches.html#toc-hId-1788513133)
 
 
-### Isključivanje opcije automatskog upgrade-a
-Za uređaje koji su vezani na FortiGate Cloud, podrazumevano podešavanje je automatski upgrade na najnoviju verziju firmware-a na istoj major verziji. Preporučuje se isključivanje te opcije. 
-``` 
-config system fortiguard
-    set auto-firmware-upgrade disable
-end
-```
-
-[Technical Tip: Understanding automatic patch upgrade](https://community.fortinet.com/t5/FortiGate-Cloud/Technical-Tip-Understanding-automatic-patch-upgrade-FortiGate/ta-p/316549)
-
-
 ### Konfiguracija DNS servera
-Podrazumevana vrednost su FortiGuard DNS serveri. Preporuka je da se promene na interne DNS servere.
+Na svičevima je potrebno konfigurisati DNS servere.
 
 U slučaju da ne postoji interni DNS server, preporuka je korišćenje javnih Cisco Umbrella DNS servera:
 ``` 
@@ -139,15 +129,10 @@ U slučaju da ne postoji interni DNS server, preporuka je korišćenje javnih Ci
 
 Pored toga, preporučuje se promena DNS protokola, najčešće je u pitanju DNS preko UDP/TCP porta 53, odnosno cleartext DNS.
 ``` 
-config system dns
-    set primary <IP-DNS-PRIMARNI>  
-    set secondary <IP-DNS-SEKUNDARNI>  
-    set protocol cleartext 
-end
+ip domain-name <IME-DOMENA>
+ip name-server <DNS-SERVER1> <DNS-SERVER2>
+ip domain-lookup
 ```
-
-U slučaju da je to potrebno, FortiGate može biti DNS server:
-[Administration Guide: FortiGate DNS server](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/960561/fortigate-dns-server)
 
 
 ### Konfiguracija NTP servera
@@ -160,82 +145,236 @@ time.nist.gov
 ```
 
 ``` 
-config system ntp
-    set ntpsync enable
-    set type custom
-    config ntpserver
-        edit 0
-            set server <FQDN-NTP-PRIMARNI>  
-        next
-        edit 0
-            set server <FQDN-NTP-SEKUNDARNI>
-        next
-    end
-end
+ntp server <NTP-SERVER1> prefer
+ntp server <NTP-SERVER2>
 ```
 
 Pored NTP servera, potrebno je definisati pravilnu vremensku zonu:
 ``` 
-config system global
-    set timezone "<IME-TIMEZONE>" 
-end
+clock timezone CET 1 0
+clock summer-time CEST recurring last Sun Mar 2:00 last Sun Oct 3:00
 ```
 
-Za Srbiju, ispod možete naći našu vremensku zonu:
-```
-config system global
-    set timezone "Europe/Belgrade"
-end
-```
-
-U slučaju da je okruženje air-gapped, bez dostupnosti internog NTP servera, moguće je ručno definisati NTP server.
+Ako je potrebno konfigurisati autentifikaciju za NTP saobraćaj, postoji mogućnost.
 ``` 
-execute date <YYYY-MM-DD>  
-execute time <HH:MM:SS>  
+ntp authenticate
+ntp authentication-key 5 md5 <KLJUČ>
+ntp trusted-key 5
+ntp server <NTP-SERVER1> key 5
+ntp server <NTP-SERVER2> key 5
 ```
-
-U slučaju da je to potrebno, FortiGate može biti NTP server:
-[Administration Guide: FortiGate DNS server](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Setting-up-an-NTP-server-and-an-NTP-client-using/ta-p/302556)
 
 
 ### Konfiguracija SNMP servera
 Najsigurniji SNMP protokol u ovom trenutku je SNMP verzija 3. Međutim, zbog kompleksnosti implementacije polling-a razumljivo je korišćenje SNMP verzije 2.
 
-Svakako, jednostavniji segment konfiguracije su SNMP trap-ovi u okviru verzije 3 na koji se fokusiramo ispod.
+Preporučeno je definisati dodatne informacije o uređaju.
 ```
-config system snmp sysinfo
-	set status enable
-	set description "<IME-UREĐAJA>"
-	set contact-info "<MEJL-ADMINISTRATORA>"
-	set location "<IME-LOKACIJE>"
-config system snmp user
-    edit "<KORISNIČKO-IME>"
-        set notify-hosts <IP-SNMP-SERVERA>
-        set security-level auth-priv
-        set auth-proto sha256
-        set auth-pwd xxxx
-        set priv-proto aes256
-        set priv-pwd xxxx
-    next
-end
+snmp-server location <IME-LOKACIJE>
+snmp-server contact <MEJL-ADMINISTRATORA>
 ```
 
-U slučaju da se koristi samo SNMP verzija 3, preporučuje se brisanje svih community-ja.
+U podrazumevanoj konfiguraciji prilikom reboot-a, menja se indeksiranje uređaja, što nije željeno ponašanje.
 ```
-config system community
-	purge
-end
+snmp ifmib ifindex persist
 ```
 
-Preporuka je da se smanji limit prijave prilikom zauzeća memorije na uređajima.
+Kreiranjem grupe i korisnika pravimo template koji možemo koristiti za veći broj SNMP servera. Pored toga je potrebno limitirati MIB stablo sa samo granama koje dozvoljavamo da SNMP server polluje. U ovoj konfiguraciji smo primenili komandu ```iso``` dozvoljavamo pristup celom stablu.
 ```
-config system sysinfo
-	set trap-free-memory-threshold 25
-	set trap-freeable-memory-threshold 50
-end
+snmp-server view <IME-PROFILA-PRIKAZA> iso included
+snmp-server group <IME-PROFILA-GRUPE> v3 priv read <IME-PROFILA-PRIKAZA> access <IME-ACL>
+snmp-server user <IME-KORISNIKA> <IME-PROFILA-GRUPE> v3 auth sha <ŠIFRA-KORISNIKA> priv aes 128 <ŠIFRA-PRIV>
 ```
 
-Kada su FortiGate u HA, moguće je da uređaji šalju SNMP trap pakete kroz ```ha-mgmt-interface```. To se ne preporučuje, zbog problema sa local-out saobraćajem FortiGate-a.
+Nakon toga uključujemo korišćenje SNMP trap-ova pored polling-a.
+```
+snmp-server enable traps
+```
+
+Na kraju je potrebno samo definisati SNMP servere i primeniti određenog korisnika za njega.
+```
+snmp-server host <IP-SNMP-SERVERA> version 3 priv <IME-KORISNIKA>
+```
+
+
+### Inicijalna sistemska konfiguracija
+Inicijalna konfiguracija se sastoji od osnovne zaštite uređaja od poznatih slabosti i osnovna enkripcija osetljivih delova konfiguracije na uređaju.
+```
+service tcp-keepalives-in
+service tcp-keepalives-out
+
+service password-encryption
+
+no service pad
+no service config
+
+no ip source-route
+
+no vstack
+
+vtp mode off
+```
+
+
+### Konfiguracija administrativnog pristupa
+Konfiguracija administrativnog pristupa je preporučena samo preko sigurnih kanala(SSH i HTTPS). Međutim, zbog velikog broja slabosti vezanog za HTTP/S pristup, preporučuje se korišćenje samo SSH pristupa.
+
+Prvo generišemo SSH ključ i definišemo parametre u SSH meniju. Pored toga, potrebno je upaliti SCP u slučaju da se on koristi za transfer fajlova prilikom upgrade-a.
+```
+crypto key generate rsa modulus 4096
+ip ssh version 2
+ip ssh time-out 60
+ip ssh authentication-retries 3
+ip scp server enable
+```
+
+Kao što je pomenuto, preporučuje se gašenje administrativnih servisa koji se ne koriste.
+```
+no ip http server
+no ip http secure server
+```
+
+Preporučeno je definisati ACL za pristup uređaju samo sa definisanih IP adresa administratora.‚
+```
+ip access-list standard <IME-SSH-ACL>
+ permit <MENADŽMENT-MREŽA1> <MASKA1>
+ permit <MENADŽMENT-MREŽA2> <MASKA2>
+ deny any log
+```
+
+Zatim se definišu administratorski korisnici, lokalno ili definisanjem udaljenog autentifikacionog servera.
+
+Kada je autentifikacija sa lokalno definisanim korisnicima, preporučuje se konfiguracija aaa segmenta svakako, iako je ona primarna za udaljene autentifikacione servere. Definišu se administratorski nalozi lokalno.
+```
+username <IME-ADMINISTRATORA> privilege 15 algorithm-type sha256 secret <ŠIFRA-ADMINISTRATORA>
+enable algorithm-type sha256 secret <ŠIFRA-ENABLE>
+
+aaa new-model
+aaa authentication login <IME-AUTH-PROFILA> local
+aaa authentication enable <IME-AUTH-PROFILA> enable
+aaa authorization exec <IME-AUTH-PROFILA> local if-authenticated
+aaa authorization config-commands
+aaa authorization console
+aaa login display number-failures
+aaa login success-track-conf-time 1
+
+line vty 0 15
+ exec-timeout 30 0
+ logging synchronous
+ access-class <IME-SSH-ACL> in
+ login authentication <IME-AUTH-PROFILA>
+ authorization exec <IME-AUTH-PROFILA>
+ transport input ssh
+ transport preferred none
+exit
+line con 0
+ exec-timeout 30 0
+ logging synchronous
+ login authenctication <IME-AUTH-PROFILA>
+ transport preferred none
+exit
+line aux 0
+ transport input none
+ transport output none
+ transport preferred none
+exit
+```
+
+Kada je autentifikacija pomoću udaljenog servera, potrebno je dodati server preko kojeg se vrši autentifikacija, kao i protokol koji se koristi.
+
+Radius server konfiguracija:
+```
+aaa new-model
+
+radius server <IME-RADIUS-SERVERA1>
+ address ipv4 <IP-RADIUS-SERVERA1> auth-port <RADIUS-PORT> acct-port <ACCOUNTING-PORT>
+ key <TAJNI-KLJUČ>
+exit
+
+aaa group server radius <IME-RADIUS-GRUPE1>
+ server name <IME-RADIUS-SERVERA1>
+exit
+
+aaa authentication login <IME-AUTH-SSH-PROFILA> group <IME-RADIUS-GRUPE1> local
+aaa authentication login <IME-AUTH-CON-PROFILA> local
+aaa authorization exec <IME-AUTH-SSH-PROFILA> group <IME-RADIUS-GRUPE1> local if-authenticated
+aaa accounting exec <IME-AUTH-SSH-PROFILA> start-stop group <IME-RADIUS-GRUPE1>
+aaa authorization config-commands
+aaa authorization console
+aaa login display number-failures
+aaa login success-track-conf-time 1
+
+line vty 0 15
+ exec-timeout 30 0
+ logging synchronous
+ access-class <IME-SSH-ACL> in
+ login authentication <IME-AUTH-PROFILA>
+ authorization exec <IME-AUTH-PROFILA>
+ accounting exec <IME-AUTH-PROFILA>
+ transport input ssh
+ transport preferred none
+exit
+line con 0
+ exec-timeout 30 0
+ logging synchronous
+ login authenctication <IME-AUTH-PROFILA>
+ transport preferred none
+exit
+line aux 0
+ transport input none
+ transport output none
+ transport preferred none
+exit
+```
+
+Opciono se mogu modifikovati tajmeri.
+```
+radius server <IME-RADIUS-SERVERA1>
+ radius-server timeout 5
+ radius-server retransmit 3
+ radius-server deadtime 10
+```
+
+Jedina razlika prilikom konfiguracija LDAP-a je prvobitno definisanje servera i aaa grupe.
+```
+aaa new-model
+
+ldap server <IME-LDAP-SERVERA1>
+ host <IP-LDAP-SERVERA1>
+ port <LDAP-PORT>
+ base-dn <DISTINGUISHED-NAME>
+
+aaa group server ldap <IME-LDAP-GRUPE1>
+ server name <IME-LDAP-SERVERA1>
+```
+
+### Message-Of-The-Day(MOTD) banner
+Prilikom uspešne autentifikacije imamo opciju konfiguracije MOTD upozorenja kako bi odvratili neautorizovan pristup opremi. Većina kompanija ima potrebu za MOTD upozorenjem zbog compliance-a.
+```
+banner motd ^
+====================================================
+UNAUTHORIZED ACCESS TO THIS SYSTEM IS FORBIDDEN!!!
+====================================================
+^
+banner login ^
+    #     #####  #     # #######       #####    #####  ######  ######
+   # #   #     # ##   ## #            #     #  #     # #     # #     #
+  #   #  #       # # # # #            #        #     # #     # #     #
+ #     # #       #  #  # #####        #        #     # ######  ######
+ ####### #       #     # #            #        #     # #   #   #
+ #     # #     # #     # #            #     #  #     # #    #  #
+ #     #  #####  #     # #######        #####   #####  #     # #
+*********************************************************************
+                       hostname: <IME-UREĐAJA>                
+*********************************************************************
+                       MGMT IP adresa: <IP-ADRESA-UREĐAJA>                  
+*********************************************************************
+================================================================================
+NEOVLASCENI PRISTUP CE SE SMATRATI KRIVICNIM DELOM I BICE SUDSKI PROCESUIRAN!!!
+UNAUTHORIZED ACCESS TO THIS SYSTEM IS FORBIDDEN AND WILL BE PROSECUTED BY LAW!!!
+================================================================================
+^
+```
 
 
 ### Kreiranje aliasa komande
