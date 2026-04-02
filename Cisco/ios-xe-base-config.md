@@ -376,6 +376,9 @@ UNAUTHORIZED ACCESS TO THIS SYSTEM IS FORBIDDEN AND WILL BE PROSECUTED BY LAW!!!
 ^
 ```
 
+### Konfiguracija steka
+
+
 
 ### Kreiranje aliasa komande
 
