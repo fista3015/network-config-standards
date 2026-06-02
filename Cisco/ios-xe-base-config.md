@@ -85,9 +85,11 @@ Poslednjom komandom proveravamo uspešnost prebacivanja softverske verzije na sv
 
 Nakon toga je potrebno promeniti boot varijablu i prebaciti način pokretanja sviča.
 ```
-boot system flash:package.conf
-no boot manual
-write memory
+configure terminal
+ boot system flash:package.conf
+ no boot manual
+ write memory
+exit
 show boot
 ```
 
@@ -116,6 +118,46 @@ install add file flash:<IME-FAJLA> activate issu commit
 
 [SMU upgrade procedura](https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9200/software/release/17-10/release_notes/ol-17-10-9200/upgrading_the_switch_software.html)
 [ISSU upgrade procedura](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9400-series-switches/222283-upgrading-catalyst-9400-switches.html#toc-hId-1788513133)
+
+
+### Stack-ovanje svičeva
+Cisco Catalyst 9200 i 9300 svičevi imaju opciju stack-ovanja kroz StackWise portove sa maksimalno 8 članova. Dok Cisco Catalyst 9400 i 9500 podržavaju StackWise Virtual koji će biti pokriveni u narednom segmentu.
+
+Kako bi izvršili StackWise stack-ovanje potrebno je da svi uređaji u stack-u budu isti model i da imaju istu licencu.
+
+Pre stack-ovanja svičeva je potrebno izvršiti renumber uređaja, pomoću čega se definiše redni broj seta interfejsa na tom sviču.
+
+Odluka o aktivnom(primarnom) sviču u stack-u se odlučuje u nekoj od ove tri metode:
+
+- Konfiguracija prioriteta sviča - Konfiguracija se vrši komandom ```switch <BROJ-SVIČA> priority <PRIORITET-SVIČA>```
+
+- Definisanja konfiguracije sviča - Ako je jedan svič bez konfiguracije, on postaje standby(pasivni)
+
+- MAC adresa sviča - Svič sa manjom IP adresom postaje aktivan(primarni)
+
+Nakon inicijalne konfiguracije prioriteta i renumber-a, oba sviča se ugase, povežu StackWise kablovima i upale. Povezivanje stack-a se uvek vrši po crochet(criss-cross) šablonu, u prsten topologiji.
+
+U slučaju da se dodaje svič na postojeći, potrebno je da se na njemu promeni prioritet, odradi renumber, ugasiti svič, povezati na postojeći stack i upaliti novi svič.
+
+Prilikom stack-a se koristi MAC adresa i Bridge ID aktivnog(primarnog) uređaja.
+
+
+### StackWise Virtual(SWL) stack-ovanje svičeva
+Cisco Catalyst 9400 i veći ne podržavaju StackWise stack-ovanje, nego isključivo StackWise Virtual(SWL) sa maksimalno 8 svičeva, gde SWL nudi više funkcionalnosti.
+
+Network Advantage licenca je obavezna za rad SWL-a. Potrebno je da svičevi u SWL budu isti model i verzija. VLAN ID 4094 mora biti rezervisan zato što se koristi u SWL i ne sme biti korišćen nigde drugde u mreži. Za SWL virtualni link se moraju koristiti linkovi iste brzine.
+
+Bitno je napomenuti da C9400 serija ne podržava brzine od 100G za SWL virtualne linkove, dok C9500 i C9600 ne podržava 1G SWL virtualne linkove.
+
+Menadžment i kontrolni plane saobraćaj se obrađuje samo na aktivnom(primarnom) uređaju. Servisni plane je distribuiran na svim uređajima unutar SWL-a. To znači da u slučaju da su ingress i egress interfejsi na istom sviču u SWL-u, saobraćaj se prosleđuje direktno na tom sviču. U slučaju da je ingress i egress na različitim svičevima, obrada se vrši samo na tim svičevima, ingress obrada na jednom, egress na drugom sviču, dok tranzitni svičevi u SWL ne vrše obradu saobraćaja.
+
+Dva protokola se koriste za komunikaciju svičeva u SWL-u. 
+
+- Link Management Protocol(LMP) - Koji se aktivira na svakom linku čim se uspostavi konekcija. LMP služi za proveru integriteta linkova, monitoring i proveru aktivnosti linkova 
+
+- StackWise Discovery Protocol(SDP) - Koristi se za proveru kompatibilnosti modela i verzija svičeva, i odlučuje koji uređaj postaje aktivni, a koji standby.
+
+Cisco StackWise Virtual Header(SVH) je frame header koji služi za 'enkapsulaciju' svog saobraćaja u SWL-u. Prepoznaju ga samo Cisco svičevi koji su konfigurisani za SWL.
 
 
 ### Konfiguracija DNS servera
@@ -348,6 +390,7 @@ aaa group server ldap <IME-LDAP-GRUPE1>
  server name <IME-LDAP-SERVERA1>
 ```
 
+
 ### Message-Of-The-Day(MOTD) banner
 Prilikom uspešne autentifikacije imamo opciju konfiguracije MOTD upozorenja kako bi odvratili neautorizovan pristup opremi. Većina kompanija ima potrebu za MOTD upozorenjem zbog compliance-a.
 ```
@@ -375,9 +418,6 @@ UNAUTHORIZED ACCESS TO THIS SYSTEM IS FORBIDDEN AND WILL BE PROSECUTED BY LAW!!!
 ================================================================================
 ^
 ```
-
-### Konfiguracija steka
-
 
 
 ### Kreiranje aliasa komande
