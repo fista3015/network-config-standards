@@ -142,22 +142,90 @@ U slučaju da se dodaje svič na postojeći, potrebno je da se na njemu promeni 
 Prilikom stack-a se koristi MAC adresa i Bridge ID aktivnog(primarnog) uređaja.
 
 
-### StackWise Virtual(SWL) stack-ovanje svičeva
-Cisco Catalyst 9400 i veći ne podržavaju StackWise stack-ovanje, nego isključivo StackWise Virtual(SWL) sa maksimalno 8 svičeva, gde SWL nudi više funkcionalnosti.
+### StackWise Virtual(SVL) stack-ovanje svičeva
+Cisco Catalyst 9400 i veći ne podržavaju StackWise stack-ovanje, nego isključivo StackWise Virtual(SVL) sa maksimalno 8 svičeva, gde SVL nudi više funkcionalnosti.
 
-Network Advantage licenca je obavezna za rad SWL-a. Potrebno je da svičevi u SWL budu isti model i verzija. VLAN ID 4094 mora biti rezervisan zato što se koristi u SWL i ne sme biti korišćen nigde drugde u mreži. Za SWL virtualni link se moraju koristiti linkovi iste brzine.
+Network Advantage licenca je obavezna za rad SVL-a. Potrebno je da svičevi u SVL budu isti model i verzija. VLAN ID 4094 mora biti rezervisan zato što se koristi u SVL i ne sme biti korišćen nigde drugde u mreži. Za SVL virtualni link se moraju koristiti linkovi iste brzine.
 
-Bitno je napomenuti da C9400 serija ne podržava brzine od 100G za SWL virtualne linkove, dok C9500 i C9600 ne podržava 1G SWL virtualne linkove.
+Bitno je napomenuti da C9400 serija ne podržava brzine od 100G za SVL virtualne linkove, dok C9500 i C9600 ne podržava 1G SVL virtualne linkove.
 
-Menadžment i kontrolni plane saobraćaj se obrađuje samo na aktivnom(primarnom) uređaju. Servisni plane je distribuiran na svim uređajima unutar SWL-a. To znači da u slučaju da su ingress i egress interfejsi na istom sviču u SWL-u, saobraćaj se prosleđuje direktno na tom sviču. U slučaju da je ingress i egress na različitim svičevima, obrada se vrši samo na tim svičevima, ingress obrada na jednom, egress na drugom sviču, dok tranzitni svičevi u SWL ne vrše obradu saobraćaja.
+Menadžment i kontrolni plane saobraćaj se obrađuje samo na aktivnom(primarnom) uređaju. Servisni plane je distribuiran na svim uređajima unutar SVL-a. To znači da u slučaju da su ingress i egress interfejsi na istom sviču u SVL-u, saobraćaj se prosleđuje direktno na tom sviču. U slučaju da je ingress i egress na različitim svičevima, obrada se vrši samo na tim svičevima, ingress obrada na jednom, egress na drugom sviču, dok tranzitni svičevi u SVL ne vrše obradu saobraćaja.
 
-Dva protokola se koriste za komunikaciju svičeva u SWL-u. 
+Dva protokola se koriste za komunikaciju svičeva u SVL-u. 
 
 - Link Management Protocol(LMP) - Koji se aktivira na svakom linku čim se uspostavi konekcija. LMP služi za proveru integriteta linkova, monitoring i proveru aktivnosti linkova 
 
 - StackWise Discovery Protocol(SDP) - Koristi se za proveru kompatibilnosti modela i verzija svičeva, i odlučuje koji uređaj postaje aktivni, a koji standby.
 
-Cisco StackWise Virtual Header(SVH) je frame header koji služi za 'enkapsulaciju' svog saobraćaja u SWL-u. Prepoznaju ga samo Cisco svičevi koji su konfigurisani za SWL.
+Cisco StackWise Virtual Header(SVH) je frame header koji služi za 'enkapsulaciju' svog saobraćaja u SVL-u. Prepoznaju ga samo Cisco svičevi koji su konfigurisani za SVL.
+
+Kada postoji Multi-Chassis EtherChannel(MEC), gde više svičeva u SVL učestvuje u LACP-u, svič na kome se nalazi ingress 
+interfejs će slati paket na egress interfejsu na njemu gde god je to moguće. Po dizajnu se izbegava zagušenje SVL virtualnih linkova. 
+
+Ako prilikom MEC-a padne jedan link, sa tog sviča se radi load-balance saobraćaja na linkove ka ostalim SVL svičevima.
+
+Konfiguracija samog SVL-a je slična konfiguraciji StackWise-a.
+```
+configure terminal
+ switch <BROJ-SVIČA> renumber <NOVI-BROJ-SVIČA>
+ switch <BROJ-SVIČA> priority <PRIORITET-SVIČA>
+```
+
+Nakon toga je potrebno kreirati SVL domen.
+```
+ stackwise-virtual
+  domain <BROJ-SVL-DOMENA>
+ write memory
+```
+
+Preostalo je samo konfigurisati interfejse koji se koriste za SVL virtualni link.
+```
+configure terminal
+ interface <IME-INTERFEJSA>
+  stackwise-virtual link <INTERFEJS-LINK-ID>
+ write memory
+```
+
+U slučaju da SVL virtuelni link padne, oba sviča prelaze u aktivno stanje gde može doći do Dual-Active(split-brain) moda. Kako se to ne bi desilo, može se konfigurisati Dual-Active Detection(DAD) gde bi jedan link služio za slanje heartbeat poruka kao drugi vid provere statusa SVL-a.
+```
+configure terminal
+ interface <IME-INTERFEJSA>
+  stackwise-virtual dual-active-Detection
+ write memory
+```
+
+DAD link može da bude jedan link, a može da bude i PAgP link, odnosno enhanced PAgP(ePAgP) link.
+```
+configure terminal
+ interface range <IME-INTERFEJSA1>, <IME-INTERFEJSA2>
+  channel-group <PAGP-ID> mode desirable
+  exit
+ interface port-channel <PAGP-ID>
+  shutdown
+  exit
+ stackwise-virtual
+  dual-active detection pagp
+  dual-active detection pagp trust channel-group <PAGP-ID>
+  exit
+ interface port-channel <PAGP-ID>
+  no shutdown
+ write memory
+```
+
+U slučaju da na jednom sviču ne postoji interfejs sa VLAN ID-om BUM saobraćaja, flood domen se ne širi na taj svič čime se izbegava zagušenje SVL virtualnih linkova.
+```
+configure terminal
+ svl l2bum optimization
+ write memory
+```
+
+Kada dođe do pada SVL-a, aktivni svič uđe u recovery mod, dok standby preuzme ulogu aktivnog. Prilikom oporavka SVL-a, svič u recovery modu izvršava reload pre nego što se konačno priključi SVL-u. Kako bi izbegli reload i povratak sviča u SVL zbog bilo kakvog razloga, potrebno je ugasiti recovery reload opciju.
+```
+configure terminal
+ stackwise-virtual
+  dual-active recovery-reload-disable
+ write memory
+```
 
 
 ### Konfiguracija DNS servera
