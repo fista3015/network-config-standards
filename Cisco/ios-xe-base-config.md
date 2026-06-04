@@ -8,6 +8,8 @@ Baseline konfiguracija Cisco IOS XE svičeva prilikom inicijalizacije uređaja p
 	- [Sistemska podešavanja](#sistemska-podešavanja)
 		- [Podešavanje imena sviča](#podešavanja-imena-sviča)
 		- [Upgrade sviča](#upgrade-sviča)
+		- [StackWise stack-ovanje svičeva](#stackwise-stack-ovanje-svičeva)
+		- [StackWise Virtual(SVL) stack-ovanje svičeva](#stackwise-virtualsvl-stack-ovanje-svičeva)
 		- [Konfiguracija DNS servera](#konfiguracija-dns-servera)
 		- [Konfiguracija NTP servera](#konfiguracija-ntp-servera)
 		- [Konfiguracija SNMP servera](#konfiguracija-snmp-servera)
@@ -120,7 +122,7 @@ install add file flash:<IME-FAJLA> activate issu commit
 [ISSU upgrade procedura](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9400-series-switches/222283-upgrading-catalyst-9400-switches.html#toc-hId-1788513133)
 
 
-### Stack-ovanje svičeva
+### StackWise stack-ovanje svičeva
 Cisco Catalyst 9200 i 9300 svičevi imaju opciju stack-ovanja kroz StackWise portove sa maksimalno 8 članova. Dok Cisco Catalyst 9400 i 9500 podržavaju StackWise Virtual koji će biti pokriveni u narednom segmentu.
 
 Kako bi izvršili StackWise stack-ovanje potrebno je da svi uređaji u stack-u budu isti model i da imaju istu licencu.
