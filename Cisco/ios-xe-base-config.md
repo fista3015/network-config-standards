@@ -185,6 +185,7 @@ Preostalo je samo konfigurisati interfejse koji se koriste za SVL virtualni link
 configure terminal
  interface <IME-INTERFEJSA>
   stackwise-virtual link <INTERFEJS-LINK-ID>
+  exit
  write memory
 ```
 
@@ -193,6 +194,7 @@ U slučaju da SVL virtuelni link padne, oba sviča prelaze u aktivno stanje gde 
 configure terminal
  interface <IME-INTERFEJSA>
   stackwise-virtual dual-active-Detection
+  exit
  write memory
 ```
 
@@ -211,10 +213,11 @@ configure terminal
   exit
  interface port-channel <PAGP-ID>
   no shutdown
+  exit
  write memory
 ```
 
-U slučaju da na jednom sviču ne postoji interfejs sa VLAN ID-om BUM saobraćaja, flood domen se ne širi na taj svič čime se izbegava zagušenje SVL virtualnih linkova.
+U slučaju da na jednom sviču ne postoji interfejs sa VLAN ID-om BUM saobraćaja, flood domen se ne širi na taj svič čime se izbegava zagušenje SVL virtualnih linkova. Konfiguracija je u globalnom konfiguraciom modu.
 ```
 configure terminal
  svl l2bum optimization
@@ -226,6 +229,7 @@ Kada dođe do pada SVL-a, aktivni svič uđe u recovery mod, dok standby preuzme
 configure terminal
  stackwise-virtual
   dual-active recovery-reload-disable
+  exit
  write memory
 ```
 
@@ -240,10 +244,12 @@ U slučaju da ne postoji interni DNS server, preporuka je korišćenje javnih Ci
 ``` 
 
 Pored toga, preporučuje se promena DNS protokola, najčešće je u pitanju DNS preko UDP/TCP porta 53, odnosno cleartext DNS.
-``` 
-ip domain-name <IME-DOMENA>
-ip name-server <DNS-SERVER1> <DNS-SERVER2>
-ip domain-lookup
+```
+configure terminal
+ ip domain-name <IME-DOMENA>
+ ip name-server <DNS-SERVER1> <DNS-SERVER2>
+ ip domain-lookup
+ write memory
 ```
 
 
@@ -256,9 +262,11 @@ U slučaju da ne postoji interni NTP server, preporuka je korišćenje javnih po
 time.nist.gov
 ```
 
-``` 
-ntp server <NTP-SERVER1> prefer
-ntp server <NTP-SERVER2>
+```
+configure terminal
+ ntp server <NTP-SERVER1> prefer
+ ntp server <NTP-SERVER2>
+ write memory
 ```
 
 Pored NTP servera, potrebno je definisati pravilnu vremensku zonu:
@@ -282,8 +290,10 @@ Najsigurniji SNMP protokol u ovom trenutku je SNMP verzija 3. Međutim, zbog kom
 
 Preporučeno je definisati dodatne informacije o uređaju.
 ```
-snmp-server location <IME-LOKACIJE>
-snmp-server contact <MEJL-ADMINISTRATORA>
+configure terminal
+ snmp-server contact <MEJL-ADMINISTRATORA>
+ snmp-server location <IME-LOKACIJE>
+ write memory
 ```
 
 U podrazumevanoj konfiguraciji prilikom reboot-a, menja se indeksiranje uređaja, što nije željeno ponašanje.
@@ -312,19 +322,22 @@ snmp-server host <IP-SNMP-SERVERA> version 3 priv <IME-KORISNIKA>
 ### Inicijalna sistemska konfiguracija
 Inicijalna konfiguracija se sastoji od osnovne zaštite uređaja od poznatih slabosti i osnovna enkripcija osetljivih delova konfiguracije na uređaju.
 ```
-service tcp-keepalives-in
-service tcp-keepalives-out
-
-service password-encryption
-
-no service pad
-no service config
-
-no ip source-route
-
-no vstack
-
-vtp mode off
+configure terminal
+ service tcp-keepalives-in
+ service tcp-keepalives-out
+ 
+ service password-encryption
+ 
+ no service pad
+ no service config
+ 
+ no ip source-route
+ 
+ no vstack
+ 
+ vtp mode off
+ 
+ write memory
 ```
 
 
@@ -333,11 +346,13 @@ Konfiguracija administrativnog pristupa je preporučena samo preko sigurnih kana
 
 Prvo generišemo SSH ključ i definišemo parametre u SSH meniju. Pored toga, potrebno je upaliti SCP u slučaju da se on koristi za transfer fajlova prilikom upgrade-a.
 ```
-crypto key generate rsa modulus 4096
-ip ssh version 2
-ip ssh time-out 60
-ip ssh authentication-retries 3
-ip scp server enable
+configure terminal
+ crypto key generate rsa modulus 4096
+ ip ssh version 2
+ ip ssh time-out 60
+ ip ssh authentication-retries 3
+ ip scp server enable
+ write memory
 ```
 
 Kao što je pomenuto, preporučuje se gašenje administrativnih servisa koji se ne koriste.
@@ -464,251 +479,98 @@ aaa group server ldap <IME-LDAP-GRUPE1>
 ### Message-Of-The-Day(MOTD) banner
 Prilikom uspešne autentifikacije imamo opciju konfiguracije MOTD upozorenja kako bi odvratili neautorizovan pristup opremi. Većina kompanija ima potrebu za MOTD upozorenjem zbog compliance-a.
 ```
-banner motd ^
-====================================================
-UNAUTHORIZED ACCESS TO THIS SYSTEM IS FORBIDDEN!!!
-====================================================
-^
-banner login ^
-    #     #####  #     # #######       #####    #####  ######  ######
-   # #   #     # ##   ## #            #     #  #     # #     # #     #
-  #   #  #       # # # # #            #        #     # #     # #     #
- #     # #       #  #  # #####        #        #     # ######  ######
- ####### #       #     # #            #        #     # #   #   #
- #     # #     # #     # #            #     #  #     # #    #  #
- #     #  #####  #     # #######        #####   #####  #     # #
-*********************************************************************
-                       hostname: <IME-UREĐAJA>                
-*********************************************************************
-                       MGMT IP adresa: <IP-ADRESA-UREĐAJA>                  
-*********************************************************************
-================================================================================
-NEOVLASCENI PRISTUP CE SE SMATRATI KRIVICNIM DELOM I BICE SUDSKI PROCESUIRAN!!!
-UNAUTHORIZED ACCESS TO THIS SYSTEM IS FORBIDDEN AND WILL BE PROSECUTED BY LAW!!!
-================================================================================
-^
+configure terminal
+ banner motd ^
+ ====================================================
+ UNAUTHORIZED ACCESS TO THIS SYSTEM IS FORBIDDEN!!!
+ ====================================================
+ ^
+ banner login ^
+     #     #####  #     # #######       #####    #####  ######  ######
+    # #   #     # ##   ## #            #     #  #     # #     # #     #
+   #   #  #       # # # # #            #        #     # #     # #     #
+  #     # #       #  #  # #####        #        #     # ######  ######
+  ####### #       #     # #            #        #     # #   #   #
+  #     # #     # #     # #            #     #  #     # #    #  #
+  #     #  #####  #     # #######        #####   #####  #     # #
+ *********************************************************************
+                        hostname: <IME-UREĐAJA>                
+ *********************************************************************
+                        MGMT IP adresa: <IP-ADRESA-UREĐAJA>                  
+ *********************************************************************
+ ================================================================================
+ NEOVLASCENI PRISTUP CE SE SMATRATI KRIVICNIM DELOM I BICE SUDSKI PROCESUIRAN!!!
+ UNAUTHORIZED ACCESS TO THIS SYSTEM IS FORBIDDEN AND WILL BE PROSECUTED BY LAW!!!
+ ================================================================================
+ ^
+ write memory
 ```
 
 
 ### Kreiranje aliasa komande
 
 
-### FortiGate HA menadžment interfejs
-Umesto ha-mgmt-interface komande, preporučuje se korišćenje seta komandi na menadžment interfejsu.
-```
-config system interface
-	edit <IME-INTERFEJSA>
-		set dedicated-to management
-		set management-ip <MENADŽMENT-IP/MASK>
-	next
-end
-```
-
-Komanda ```dedicated-to``` rezerviše menadžment interfejs, posle čega se on ne može referencirati u pravilima.
-
-[Technical Tip: FortiGate dedicated-mgmt feature, or Out-of-band Management](https://community.fortinet.com/t5/FortiGate/Technical-Tip-FortiGate-dedicated-mgmt-feature-or-Out-of-band/ta-p/193699)
-
-Komandom ```management-ip``` definišemo jedinstvenu IP adresu za obe jedinice, koja se može koristiti i na menadžment, i na servisnom interfejsu(ne preporučuje se).
-
-[Technical Tip: Implement independent Management IP for HA Cluster](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Implement-independent-Management-IP-for-HA-Cluster/ta-p/224671)
-
-
-
-
-
-## Konfiguracija High-Availability(HA)
-Konfiguracija HA je u većini implementacija ista, ili slična, i postoje određene preporuke koje se retko primenjuju, a značajni su za rad klastera.
-
-Obradićemo jedino rešenje koje ima smisla u implementaciji FortiGate HA, a to je **FortiGate Clustering Protocol(FGCP) Active-Passive(A-P)** mod rada.
-
-
-### Inicijalna konfiguracija HA
-Inicijalna konfiguracija za rad klastera može uvek biti ista.
-
-Konfiguracija primarnog HA uređaja:
-```
-config system ha
-	set group-id <HA-ID>
-	set group-name <HA-IME>
-	set mode a-p
-	set password <HA-ŠIFRA>
-	set hbdev <HA-HB-IME-INTERFEJSA1> 150 <HA-HB-IME-INTERFEJSA2> 100
-	set override disable
-	set monitor <IME-INTERFEJSA>
-	set priority 150
-end
-```
-
-Konfiguracija sekundarnog HA uređaja:
-```
-config system ha
-	set group-id <HA-ID>
-	set group-name <HA-IME>
-	set mode a-p
-	set password <HA-ŠIFRA>
-	set hbdev <HA-HB-IME-INTERFEJSA1> 150 <HA-HB-IME-INTERFEJSA2> 100
-	set override disable
-	set priority 100
-end
-```
-
-Preporučuje se da se **group ID definiše eksplicitno**. Kada je group ID isti za klaster u istoj mreži, može doći do problema u dupliranim MAC address tabelama na svičevima preko kojih su vezani, čime izazivamo prekide produkcije.
-
-Preporučuje se da su **svi produkcioni interfejsi** monitor interfejsi.
-
-Preporučuje se da je prioritet primarnog uređaja veći od 128, što je podrazumevana vrednost prioriteta na FortiGate uređaju.
-
-Preporučena konfiguracija klastera je da se override opcija onemogući, gde se kontrola vrši pomoću uptime-a, gde ne želimo da prekidom uređaja dođe do duplog failover-a nakon što se povrati stanje primarnog uređaja.
-
-
-### Replikacija sesija
-Podrazumevana vrednost ne uključuje replikaciju sesija na sekundarni uređaj. Preporučuje se repliciranje svih TCP, UDP, SCTP i ICMP sesija.
-```
-config system ha
-    set session-pickup enable
-    set session-pickup-connectionless enable
-    set session-pickup-expectation enable
-end
-```
-
-[Technical Tip: HA session failover (session pickup) ](https://community.fortinet.com/t5/FortiGate/Technical-Tip-HA-session-failover-session-pickup/ta-p/191165)
-
-### Failover kriterijumi
-Podrazumevani parametri failover-a su:
-
-- Pad heartbeat(HB) linka -- Podrazumevano podešavanje
-
-- Pad napajanja primarnog uređaja -- Podrazumevano podešavanje
-
-- Prestanak rada SSD diska(opciono)
-	Kako bi se desio failover u klasteru nakon prestanka rada SSD diska, potrebno je upaliti monitoring diska u HA procesu.
-	``` 
-	config system ha
-		set ssd-failover enable
-	end
-	```
-
-- Visoka iskorišćenost memorije uređaja(opciono)
-	Kako bi se desio failover u klasteru nakon visoke iskorišćenosti memorije uređaja, potrebno je upaliti monitoring memorije u HA procesu. Preporuka je da se i kod manjih uređaja poveća limit sa conserve mod, dokle god je preporučena verzija za uređaje 7.4.x.
-	```
-	config system ha
-		set memory-based-failover enable
-		set memory-failover-threshold 92
-		set memory-failover-flip-timeout 60
-	end
-	config system global
-		set memory-use-threshold-red 94
-		set memory-use-threshold-green 90
-		set memory-use-threshold-extreme 97
-	end
-	```
-
-[Technical Tip: FortiGate HA failover due to memory utilization](https://community.fortinet.com/t5/FortiGate/Technical-Tip-FortiGate-HA-failover-due-to-memory-utilization/ta-p/195019)
-
-- Pad interfejsa(opciono)
-	U slučaju pada produkcionih interfejsa na primarnoj jedinici, preporučuje se odrađivanje failover-a na sekundarni uređaj, u slučaju da je na tom uređaju interfejs dostupan.
-	```
-	config system ha
-		set monitor <IME-INTERFEJSA1> <IME-INTERFEJSA2>
-	end
-	```
-
-	Monitor interfejs može biti i fizički interfejs u agregaciji, pored toga se može i definisati minimalni broj monitoring interfejsa nakon čega dolazi do failover-a.
-
-- Monitor server(opciono)
-	Kada monitoring interfejsa nije dovoljan, potrebno je testirati dostupnost sa udaljenom IP adresom pomoću FortiGate link-monitor procesa. Potrebno je ugasiti opcije link monitora koje utiču na rutiranje.
-	``` 
-	config system link-monitor
-		edit "<IME-LINK-MONITORA>"  
-			set srcintf <IME-IZLAZNOG-INTERFEJSA>  
-			set server <IP-ADRESA-SERVERA1> <IP-ADRESA-SERVERA1>
-			set protocol <PORT-SERVERA>  
-			set ha-priority <PRIORITET-LINKA>  
-			set update-cascade-interface disable
-			set update-static-route disable
-			set update-policy-route disable
-		next
-	end
-	config system ha
-		set pingserver-monitor-interface <IME-IZLAZNOG-INTERFEJSA>  
-		set pingserver-failover-threshold <FAILOVER-PRIORITET>  
-		set pingserver-flip-timeout <VREME-FAILOVER>  
-		set pingserver-secondary-force-reset disable
-	end
-	```
-
-	Podrazumevana vrednost za protokol je 1(ICMP).
-	
-	Podrazumevano podešavanje za ```ping-server-flip-timeout``` je 0, failover se dešava kada se izgubi konekcija sa jednim monitor serverom. Uz pomoć ```ha-priority``` i ```ping-server-flip-timeout``` možemo kontrolisati razlog failover-a.
-
-[Technical Tip: Combining remote link monitoring with a high availability FGCP cluster](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Combining-remote-link-monitoring-with-a-high/ta-p/191330)
-
-
-### Failover opcije
-U velikim okruženjima gde FortiGate razmenjuje velike količine ruta kroz dinamičke ruting protokole, može doći do loše replikacije ruta na sekundarni uređaj. U tom slučaju se preporučuje modifikovanje route parametara u okviru HA podešavanja.
-```
-config system ha
-	set route-hold 30
-	set route-wait 30
-	set route-ttl 0
-end
-```
-
-[Technical Tip: Controlling how HA synchronizes routing table updates](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Controlling-how-HA-synchronizes-routing-table/ta-p/191310)
-
-Sa podrazumevanom konfiguracijom, tokom upgrade-a uređaja dolazi do 2 failover-a. U slučaju da je potreban što veći nivo timeout-a, ili se zahteva provera servisa na prvoj upgrade-ovanoj jedinici, moguće je konfigurisati da se failover sa sekundarne na primarnu jedinicu ne dogodi automatski. Sam upgrade proces se kontroliše komandom ```ha-uptime-diff-margin``` koja stopira failover loop proces prilikom reboot-a uređaja(ili restarta uptime-a). Podrazumevana vrednost je 15 minuta.
-```
-config system ha
-	set ha-uptime-diff-margin 60
-end
-```
-
-[Technical Tip: HA age time difference (HA cluster uptime)](https://community.fortinet.com/t5/FortiGate/Technical-Tip-HA-age-time-difference-HA-cluster-uptime/ta-p/230805)
-
-Neki svičevi ignorišu Gratuitious ARP(GARP) pakete i ne promene ulaz u ARP tabeli prilikom failover-a. U tom slučaju se može uključiti opcija sa kojom bi uređaj prilikom failover-a odradio bounce interfejsa.
-```
-config system ha
-	set linked-failed-signal enable
-end
-```
-
-
-### Konfiguracija VDOM particija
-U slučaju da je potrebno kreirati klaster gde je za jedan VDOM primarni jedan uređaj, za drugi VDOM drugi uređaj, koristi se VDOM partitioning.
-
-Najčešći slučaj je podela VDOM-ova po lokaciji, gde u okviru dva datacentra postoji jedan FGCP klaster.
-```
-config system ha
-	set vcluster-status enable
-	config vcluster
-        edit 1
-            set override enable
-            set priority 200
-            set vdom "<IME-VDOM1>" "<IME-VDOM2>"
-        next
-        edit 2
-            set override enable
-            set priority 100
-            set vdom "<IME-VDOM3>" "<IME-VDOM4>"
-        next
-    end
-end
-```
-
-Kod geografski razdvojenih uređaja, preporučuje se i modifikacija HB intervala.
-```
-config system ha
-	set hb-interval 5
-end
-```
-
-[Technical Tip: Configuring HA virtual cluster with VDOM Partitioning](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Configuring-HA-virtual-cluster-with-VDOM/ta-p/268820)
-
-
 
 
 
 ## Podešavanja interfejsa
+
+
+### Osnovna konfiguracija interfejsa
+Osnovna konfiguracija interfejsa na Catalyst svičevima obuhvata Layer 1, 2 i 3 konfiguraciju, i biće kratko definisana u ovom segmentu. Više informacija o svakom od segmenata ispod.
+
+- Dodavanje opisa interfejsa - Opis se može definisati na bilo kom tipu fizičkog ili logičkog interfejsa
+  ```
+  configure terminal
+   interface <IME-INTERFEJSA>
+    description <OPIS-INTERFEJSA>
+   write memory
+  ```
+
+- Definisanje tipa duplex-a - Half duplex je moguće definisati samo na fizičkim interfejsima sa brzinom manjom od 1000Mb/s
+  ```
+  configure terminal
+   interface <IME-INTERFEJSA>
+    duplex <TIP-DUPLEX-A>
+   write memory
+  ```
+
+- Flowcontrol na interfejsu - Prilikom zagušenja, svič može da dobije *pause* frejm kojim označava prestanak slanja i primanja frejmova dok se zagušenje ne otkloni
+  ```
+  configure terminal
+   interface <IME-INTERFEJSA>
+    flowcontrol receive on
+   write memory
+  ```
+
+- Definisanje tipa konzolnog pristupa - Moguće je eksplicitno definisanje tipa konekcije koji se koristi za konzolni pristup(RJ45 ili USB), podrazumevani pristup kada su oba u funkciji je USB
+  ```
+  configure terminal
+   line console 0
+    media-type rj45
+   write memory
+  ```
+
+-  
+
+- tdr, mtu, power supply, eee, perpetual and fast poe
+
+- gašenje usb konzole, lldp tlv, 
+
+- l3, gre tunel,
+
+
+### Definisanje makro seta interfejsa
+Na Cisco Catalyst svičevima je moguće definisati makro set interfejsa umesto komande za opseg.
+
+Moguće je kreirati veći broj macro-a koji se mogu koristiti za različite stvari(korisnički interfejsi, štampači, veze ka svičevima itd...) 
+```
+configure terminal
+ define interface-range <IME-MACRO-A> <IME-INTERFEJSA1> - <IME-INTERFEJSA2>, <IME-INTERFEJSA3>
+ interface range macro <IME-MACRO-A>
+  ...konfiguracija interfejsa...
+ write memory
+```
 
 
 ### Blokiranje intra-zone saobraćaja
