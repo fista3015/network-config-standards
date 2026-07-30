@@ -6,28 +6,21 @@ Baseline konfiguracija Cisco IOS XE svičeva prilikom inicijalizacije uređaja p
 
 - [Početak dokumenta](#fortigate-baseline-konfiguracija-prilikom-inicijalizacije-uređaja)
 	- [Sistemska podešavanja](#sistemska-podešavanja)
-		- [Podešavanje imena sviča](#podešavanja-imena-sviča)
+		- [Podešavanje imena sviča](#podešavanje-imena-sviča)
 		- [Upgrade sviča](#upgrade-sviča)
 		- [StackWise stack-ovanje svičeva](#stackwise-stack-ovanje-svičeva)
 		- [StackWise Virtual(SVL) stack-ovanje svičeva](#stackwise-virtualsvl-stack-ovanje-svičeva)
 		- [Konfiguracija DNS servera](#konfiguracija-dns-servera)
 		- [Konfiguracija NTP servera](#konfiguracija-ntp-servera)
 		- [Konfiguracija SNMP servera](#konfiguracija-snmp-servera)
-		- [Kreiranje aliasa komande](#kreiranje-aliasa-komande)
+		- [Inicijalna sistemska konfiguracija](#inicijalna-sistemska-konfiguracija)
+		- [Konfiguracija administrativnog pristupa](#konfiguracija-administrativnog-pristupa)
+		- [Message-Of-The-Day(MOTD) banner](#message-of-the-daymotd-banner)
+		- [Kreiranje alias komande](#kreiranje-alias-komande)
 		- [FortiGate HA menadžment interfejs](#fortigate-ha-menadžment-interfejs)
-	- [Konfiguracija High-Availability(HA)](#konfiguracija-high-availabilityha)
-		- [Inicijalna konfiguracija HA](#inicijalna-konfiguracija-ha)
-		- [Replikacija sesija](#replikacija-sesija)
-		- [Failover kriterijumi](#failover-kriterijumi)
-		- [Failover opcije](#failover-opcije)
-		- [Konfiguracija VDOM particija](#konfiguracija-vdom-particija)
 	- [Podešavanja interfejsa](#podešavanja-interfejsa)
-		- [Blokiranje intra-zone saobraćaja](#blokiranje-intra-zone-saobraćaja)
-		- [Isključivanje nekorišćenih interfejsa](#isključivanje-nekorišćenih-interfejsa)
-		- [Brisanje nekorišćenih DHCP servera](#brisanje-nekorišćenih-dhcp-servera)
-		- [Isključivanje menadžment servisa na svim interfejsima koji nisu za menadžment](#isključivanje-menadžment-servisa-na-svim-interfejsima-koji-nisu-za-menadžment)
-		- [Definisanje protoka na WAN interfejsima](#definisanje-protoka-na-wan-interfejsima)
-		- [Konfiguracija detekcije uređaja](#konfiguracija-detekcije-uređaja)
+		- [Osnovna konfiguracija interfejsa](#osnovna-konfiguracija-interfejsa)
+		- [Definisanje makro seta interfejsa](#definisanje-makro-seta-interfejsa)
 	- [Administratorski pristup](#administratorski-pristup)
 		- [Konfiguracija password polise](#konfiguracija-password-polise)
 		- [Konfiguracija administratora](#konfiguracija-administratora)
@@ -507,7 +500,7 @@ configure terminal
 ```
 
 
-### Kreiranje aliasa komande
+### Kreiranje alias komande
 
 
 
@@ -572,76 +565,6 @@ configure terminal
  write memory
 ```
 
-
-### Blokiranje intra-zone saobraćaja
-FortiGate ne mora biti, ali bi ga trebalo konfigurisati kao zone-based firewall. Kada se definišu zone, potrebno je konfigurisati intra-zone blokiranje pravila, gde bi u okviru firewall polise definisali propuštanja po potrebi.
-```
-config system zone
-    edit <IME-ZONE> 
-        set intrazone deny
-    next
-end
-```
-
-[Technical Tip: Block or allow intra-zone traffic](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Block-or-allow-intra-zone-traffic/ta-p/279733)
-
-
-### Isključivanje nekorišćenih interfejsa
-Podrazumevano podešavanje interfejsa je da su upaljeni na većini manjih uređaja. Potrebno ih je ugasiti(i eventualno izbaciti iz hardverskog sviča).
-```
-config system interface
-    edit <IME-INTERFEJSA>
-		unset ip
-        set status down
-    next
-end
-```
-
-
-### Brisanje nekorišćenih DHCP servera
-Većina manjih uređaja dolaze sa unapred konfigurisanim DHCP serverom za FortiLink Subinterfejse(i eventualno hardverski svič). S obzirom da nije preporuka koristiti njih, potrebno ih je izbrisati.
-```
-config system dhcp server
-	delete <ID-DHCP-SERVERA>
-end
-```
-
-
-### Isključivanje menadžment servisa na svim interfejsima koji nisu za menadžment
-Podrazumevana konfiguracija sadrži veliki broj interfejsa na kojima su upaljeni menadžment servisi. Potrebno je ugasiti svaku od njih na mestima na kojima se ne koristi, ili ne treba da se koristi.
-``` 
-config system interface
-	edit <IME-INTERFEJSA>
-		unset allowaccess
-	next
-end
-```
-
-
-### Definisanje protoka na WAN interfejsima
-ISP linkovi skoro uvek imaju niži protok od same brzine linka. Definisanjem brzine linka imamo tri benefita: dozvoljava statistiku na WAN linku preko FortiAnalyzer-a, potreban za rad nekih od SD-WAN modova i omogućava SD-WAN analitiku na FortiAnalyzer-u. 
-```
-config system interface
-    edit "<IME-INTERFEJSA>"  
-        set monitor-bandwidth enable
-    next
-end
-```
-
-
-### Konfiguracija detekcije uređaja
-FortiGate ima opciju prikupljanja informacija o krajnjim uređajima tako što sluša saobraćaj na LAN linkovima i obrađuje ga u jednom preglednom i korisnom prikazu.
-```
-config system interface
-    edit "<IME-INTERFEJSA>"  
-        set device-identification enable
-    next
-end
-```
-
-Treba napomenuti da ova opcija na interfejsima sa većim opsezima može povećati opterećenje uređaja.
-
-[Technical Tip: Enable 'Device Detection' to allow FortiOS to monitor networks](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Enable-Device-Detection-to-allow-FortiOS-to/ta-p/190901)
 
 
 
