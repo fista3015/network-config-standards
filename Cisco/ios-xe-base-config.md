@@ -520,7 +520,7 @@ Osnovna konfiguracija interfejsa na Catalyst svičevima obuhvata Layer 1, 2 i 3 
    write memory
   ```
 
-- Definisanje tipa duplex-a - Half duplex je moguće definisati samo na fizičkim interfejsima sa brzinom manjom od 1000Mb/s
+- Promena tipa duplex-a - Half duplex je moguće definisati samo na fizičkim interfejsima sa brzinom manjom od 1000Mb/s
   ```
   configure terminal
    interface <IME-INTERFEJSA>
@@ -528,7 +528,7 @@ Osnovna konfiguracija interfejsa na Catalyst svičevima obuhvata Layer 1, 2 i 3 
    write memory
   ```
 
-- Flowcontrol na interfejsu - Prilikom zagušenja, svič može da dobije *pause* frejm kojim označava prestanak slanja i primanja frejmova dok se zagušenje ne otkloni
+- Promena Flowcontrol na interfejsu - Prilikom zagušenja, svič može da dobije *pause* frejm kojim označava prestanak slanja i primanja frejmova dok se zagušenje ne otkloni
   ```
   configure terminal
    interface <IME-INTERFEJSA>
@@ -536,7 +536,7 @@ Osnovna konfiguracija interfejsa na Catalyst svičevima obuhvata Layer 1, 2 i 3 
    write memory
   ```
 
-- Definisanje tipa konzolnog pristupa - Moguće je eksplicitno definisanje tipa konekcije koji se koristi za konzolni pristup(RJ45 ili USB), podrazumevani pristup kada su oba u funkciji je USB
+- Promena tipa konzolnog pristupa - Moguće je eksplicitno definisanje tipa konekcije koji se koristi za konzolni pristup(RJ45 ili USB), podrazumevani pristup kada su oba u funkciji je USB
   ```
   configure terminal
    line console 0
@@ -544,13 +544,40 @@ Osnovna konfiguracija interfejsa na Catalyst svičevima obuhvata Layer 1, 2 i 3 
    write memory
   ```
 
--  
+- Promena MTU vrednosti - Moguće je promeniti MTU vrednosti na fizičkom interfejsu ili u okviru globalnih podešavanja na sviču
+ ```
+ configure terminal
+  ip mtu <MTU-BROJ>
+  interface <IME-INTERFEJSA>
+   mtu <MTU-BROJ>
+  write memory
+ ```
 
-- tdr, mtu, power supply, eee, perpetual and fast poe
-
-- gašenje usb konzole, lldp tlv, 
-
-- l3, gre tunel,
+- Konfiguracija LLDP polise - Pored prepoznavanja statusa i tipa linka, prikupljanja informacija uređaja, LLDP se može koristiti i za konfigurisanja interfejsa pomoću LLDP karakteristika, LLDP-MED TLV vrednosti. Prikazana je globalna konfiguracija LLDP-a, interfejs konfiguracija posebno i konfiguracija svaki od LLDP-MED TLV parametara
+ ```
+ configure terminal
+  lldp run
+  interface <IME-INTERFEJSA>
+   lldp transmit
+   lldp receive
+  network-policy profile <BROJ-LLDP-POLISE>
+   voice vlan <VLAN-ID> cos <COS-VREDNOST>
+   voice-signaling <VLAN-ID> dscp <DSCP-VREDNOST>
+  location civic-location identifier <BROJ-CIVIC-POLISE>
+   number <BROJ-STANA>
+   primary-road-name <ADRESA>
+   city <IME-GRADA>
+   state <IME-OPŠTINE>
+   building <BROJ-ZGRADE>
+   room <IME-SOBE>
+   country <IME-DRŽAVE>
+  interface <IME-INTERFEJSA>
+   lldp med-tlv-select inventory management
+   network-policy <BROJ-LLDP-POLISE>
+   lldp med-tlv-select network-policy
+   location civic-location-id <BROJ-CIVIC-POLISE>
+  write memory
+ ```
 
 
 ### Definisanje makro seta interfejsa
