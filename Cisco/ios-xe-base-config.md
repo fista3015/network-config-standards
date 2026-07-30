@@ -21,6 +21,7 @@ Baseline konfiguracija Cisco IOS XE svičeva prilikom inicijalizacije uređaja p
 	- [Podešavanja interfejsa](#podešavanja-interfejsa)
 		- [Osnovna konfiguracija interfejsa](#osnovna-konfiguracija-interfejsa)
 		- [Definisanje makro seta interfejsa](#definisanje-makro-seta-interfejsa)
+		- [Private VLANs](#private-vlans)
 	- [Administratorski pristup](#administratorski-pristup)
 		- [Konfiguracija password polise](#konfiguracija-password-polise)
 		- [Konfiguracija administratora](#konfiguracija-administratora)
@@ -593,8 +594,65 @@ configure terminal
 ```
 
 
+### Private VLANs
 
+Privatni VLAN-ovi su preteča Zero-Trust tehnologija koja služi za izolaciju krajnjih uređaja na višim slojevima OSI modela. Private VLAN-ovi izolaciju vrše na drugom sloju OSI modela, i u retko se koriste u modernom dizajnu mrežnih topologija. Značajni su zbog ideje Zero-Trust-a koja je potekla od njih.
 
+Privatni VLAN-ovi dele svič na domene. Glavni domen obuhvata set poddomena koji mogu biti Isolated ili Community poddomen. Interfejsi se mogu dodeliti u glavni domen, ili neki od ova dva tipa poddomena(može biti više Community poddomena).
+
+Poddomeni su ništa drugo nego VLAN-ovi koji pripadaju istom domenu i u zavisnosti od tipa(Isolated ili Community) primenjuju različita prava na krajnje uređaje.
+
+- Isolated VLAN - Uređaji u Isolated VLAN-u mogu komunicirati samo sa gateway-em(ili uređajem u glavnom domenu(VLAN-u)). Komunikacija sa ostalim uređajima u Isolated ili Community VLAN-ovima je zabranjena
+
+- Community VLAN - Uređaji u Community VLAN-u mogu kominicirati sa ostalim uređajima u istom Community VLAN-u i gateway-em. Komunikacija sa ostalim uređajima u Isolated ili drugim Community VLAN-ovima je zabranjena.
+
+- Promiscous VLAN - Uređaji u Promiscous VLAN-u se nalaze u glavnom domenu, i to je najčešće samo gateway. Oni mogu komunicirati sa svim uređajima u domenu i njegovim poddomenima.
+
+Kreiranje svakog tipa VLAN-a:
+```
+configure terminal
+ vlan 101
+  name PVLAN-Isolated
+  private-vlan Isolated
+ vlan 102
+  name PVLAN-Community
+  private-vlan community
+ vlan 100
+  name PVLAN-Promiscous
+  private-vlan association 101-102
+ write memory
+```
+
+Dodeljivanje svakog tipa VLAN-a na interfejs:
+```
+configure terminal
+ interface <IME-INTERFEJSA>
+  description ENDPOINT-Isolated
+  switchport mode private-vlan host
+  switchport private-vlan host-association 100 101
+ interface <IME-INTERFEJSA>
+  description ENDPOINT-Community
+  switchport mode private-vlan host
+  switchport private-vlan host-association 100 102
+ interface <IME-INTERFEJSA>
+  description ENDPOINT-Gateway
+  switchport mode private-vlan promiscous
+  switchport private-vlan mapping 100 101-102
+ write memory
+```
+
+U slučaju da je gateway na sviču, konfiguracija interfejsa je zasebno definisana:
+```
+configure terminal
+ interface <IME-VLAN-INTERFEJSA>
+  description PVLAN-Promiscous
+  ip address <IP-ADRESA-MASKA>
+  private-vlan mapping 101-102
+  no shutdown
+ write memory
+```
+
+U slučaju da gateway nije na sviču, VLAN-ovi se propuštaju standardnom konfiguracijom trunk interfejsa.
 
 
 ## Administratorski pristup
