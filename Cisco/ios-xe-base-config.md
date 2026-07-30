@@ -17,7 +17,6 @@ Baseline konfiguracija Cisco IOS XE svičeva prilikom inicijalizacije uređaja p
 		- [Konfiguracija administrativnog pristupa](#konfiguracija-administrativnog-pristupa)
 		- [Message-Of-The-Day(MOTD) banner](#message-of-the-daymotd-banner)
 		- [Kreiranje alias komande](#kreiranje-alias-komande)
-		- [FortiGate HA menadžment interfejs](#fortigate-ha-menadžment-interfejs)
 	- [Podešavanja interfejsa](#podešavanja-interfejsa)
 		- [Osnovna konfiguracija interfejsa](#osnovna-konfiguracija-interfejsa)
 		- [Definisanje makro seta interfejsa](#definisanje-makro-seta-interfejsa)
@@ -653,6 +652,9 @@ configure terminal
 ```
 
 U slučaju da gateway nije na sviču, VLAN-ovi se propuštaju standardnom konfiguracijom trunk interfejsa.
+
+
+
 
 
 ## Administratorski pristup
