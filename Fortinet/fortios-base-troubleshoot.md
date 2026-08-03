@@ -5,14 +5,11 @@
 Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pre implementacije u produkciono okruženje.
 
 - [Početak dokumenta](#fortigate-baseline-konfiguracija-prilikom-inicijalizacije-uređaja)
-	- [Sistemska podešavanja](#sistemska-podešavanja)
-		- [Podešavanje imena uređaja](#podešavanja-imena-uređaja)
+	- [Sistemska podešavanja - Troubleshooting](#sistemska-podešavanja-troubleshooting)
 		- [Upgrade firewall uređaja](#upgrade-firewall-uređaja)
-		- [Isključivanje opcije automatskog upgrade-a](#isključivanje-opcije-automatskog-upgrade-a)
 		- [Konfiguracija DNS servera](#konfiguracija-dns-servera)
 		- [Konfiguracija NTP servera](#konfiguracija-ntp-servera)
 		- [Konfiguracija SNMP servera](#konfiguracija-snmp-servera)
-		- [FortiGate HA menadžment interfejs](#fortigate-ha-menadžment-interfejs)
 	- [Konfiguracija High-Availability(HA)](#konfiguracija-high-availabilityha)
 		- [Inicijalna konfiguracija HA](#inicijalna-konfiguracija-ha)
 		- [Replikacija sesija](#replikacija-sesija)
@@ -57,173 +54,109 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 	- [Security profili](#security-profili)
 
 
-## Sistemska podešavanja
-
-
-### Podešavanja imena uređaja
-Podrazumevana konfiguracija je da je ime uređaja serijski broj. Preporučuje se podešavanje imena bez razmaka sa donjom crtom(_) i crticom(-).
-```
-config system global
-	set hostname <IME-UREĐAJA>
-end
-```
+## Sistemska podešavanja - Troubleshooting
 
 
 ### Upgrade firewall uređaja
-Potrebno je redovno pratiti novosti PSIRT-a vezane za slabosti firmware verzija uređaja. Kada se pronađe slabost, potrebno je da se zakrpi u što kraćem vremenskom roku.
+Po preporuci Fortineta, upgrade se vrši uz konzolni pristup kako bi se pratio svaki ispis uređaja. Često to nije moguće u manjim okruženjima ili udaljenim lokacijama. Nakon upgrade-a, dobra je praksa pregledati najznačajnije delove sistema:
 
-Fortinet u okviru dokumentacije za FortiOS, sadrži upgrade proceduru:
-[FortiOS: Firmware Upgrade Guide](https://docs.fortinet.com/document/fortigate/7.0.0/firmware-upgrade-guide/149045/why-upgrade)
-
-Pre svakog upgrade-a, potrebno je detaljno analizirati Release Notes za FortiOS verziju.
-
-Upgrade se vrši prateći preporučene korake upgrade, koje je moguće sagledati na zasebnom Fortinet sajtu:
-[Fortinet: Upgrade Path Tool](https://docs.fortinet.com/upgrade-tool/fortigate?model=FG200F&from=7.2.13&to=7.4.12)
-
-Takođe, Fortinet sadrži svoju listu preporučenih verzija za svaki model. Ne preporučuje se 'slepo' praćenje preporuka, ali je dobar pokazatelj trenutnog stanja verzija:
-[Technical Tip: Recommended release for FortiOS](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Recommended-release-for-FortiOS/ta-p/227178)
-
-
-### Isključivanje opcije automatskog upgrade-a
-Za uređaje koji su vezani na FortiGate Cloud, podrazumevano podešavanje je automatski upgrade na najnoviju verziju firmware-a na istoj major verziji. Preporučuje se isključivanje te opcije. 
-``` 
-config system fortiguard
-    set auto-firmware-upgrade disable
-end
+- Pregled logova za promene konfiguracije
+```
+diagnose debug config-error-log read
 ```
 
-[Technical Tip: Understanding automatic patch upgrade](https://community.fortinet.com/t5/FortiGate-Cloud/Technical-Tip-Understanding-automatic-patch-upgrade-FortiGate/ta-p/316549)
+- Pregled logova za neočekivani pad servisa
+```
+diagnose debug crashlog read
+```
+
+- Pregled performansi i stanja sistema
+```
+get system status
+get system performance status
+execute sensor list
+```
+
+- Pregled FGCP HA dostupnosti
+```
+get system ha status
+diagnose sys ha history read
+diagnose sys ha dump-by group
+```
+
+- Pregled stanja interfejsa
+```
+diagnose hardware deviceinfo nic <IME-INTERFEJSA>
+get system interface transceiver <IME-INTERFEJSA>
+diagnose ip address list
+```
+
+- Pregled tabele rutiranja
+```
+get router info routing-table details
+get router info routing-table database
+get router info kernel
+get router info bgp summary
+get router info bgp network
+get router info ospf route
+get router info ospf database brief
+diagnose firewall proute list
+diagnose sys sdwan service4
+```
+
+- Pregled statusa IPSec tunela
+```
+diagnose vpn ike gateway list
+diagnose vpn tunnel list
+```
 
 
 ### Konfiguracija DNS servera
-Podrazumevana vrednost su FortiGuard DNS serveri. Preporuka je da se promene na interne DNS servere.
-
-U slučaju da ne postoji interni DNS server, preporuka je korišćenje javnih Cisco Umbrella DNS servera:
-``` 
-208.67.222.222
-208.67.220.220
-``` 
-
-Pored toga, preporučuje se promena DNS protokola, najčešće je u pitanju DNS preko UDP/TCP porta 53, odnosno cleartext DNS.
-``` 
-config system dns
-    set primary <IP-DNS-PRIMARNI>  
-    set secondary <IP-DNS-SEKUNDARNI>
-	set domain <IME-DOMENA>
-    set protocol cleartext 
-end
+U slučaju da postoji problem sa komunikacijom ka DNS serveru, potrebno je proveriti DNS podešavanja, dostupnost komunikacije sa Source IP adrese i logove. Komande koje prikazuju DNS podešavanja, kao i razrešene DNS zapise u kešu uređaja.
+```
+diagnose test application dnsproxy 3
+diagnose test application dnsproxy 5
 ```
 
-U slučaju da je to potrebno, FortiGate može biti DNS server:
-[Administration Guide: FortiGate DNS server](https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/960561/fortigate-dns-server)
+U najgorem slučaju je potrebno izvršiti debug, i koriste se sledeće komande:
+```
+diagnose debug disable
+diagnose debug reset
+diagnose debug application dnsproxy 255
+diagnose debug enable
+```
 
 
 ### Konfiguracija NTP servera
-Podrazumevana vrednost su FortiGuard NTP serveri. Preporuka je da se promene na interne servere sa definisanim NTP servisom.
-
-U slučaju da ne postoji interni NTP server, preporuka je korišćenje javnih popularnih NTP servera:
+U slučaju da postoji problem sa komunikacijom ka NTP serveru, izvršava se provera dostupnosti i sinhronizacije vremena
 ```
-0.pool.ntp.org
-time.nist.gov
+diagnose sys ntp status
 ```
 
-``` 
-config system ntp
-    set ntpsync enable
-    set type custom
-    config ntpserver
-        edit 0
-            set server <FQDN-NTP-PRIMARNI>  
-        next
-        edit 0
-            set server <FQDN-NTP-SEKUNDARNI>
-        next
-    end
-end
+U najgorem slučaju je potrebno izvršiti debug, i koriste se sledeće komande:
 ```
-
-Pored NTP servera, potrebno je definisati pravilnu vremensku zonu:
-``` 
-config system global
-    set timezone "<IME-TIMEZONE>" 
-end
+diagnose debug disable
+diagnose debug reset
+diagnose debug application ntpd -1
+diagnose debug enable
 ```
-
-Za Srbiju, ispod možete naći našu vremensku zonu:
-```
-config system global
-    set timezone "Europe/Belgrade"
-end
-```
-
-U slučaju da je okruženje air-gapped, bez dostupnosti internog NTP servera, moguće je ručno definisati NTP server.
-``` 
-execute date <YYYY-MM-DD>  
-execute time <HH:MM:SS>  
-```
-
-U slučaju da je to potrebno, FortiGate može biti NTP server:
-[Administration Guide: FortiGate DNS server](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Setting-up-an-NTP-server-and-an-NTP-client-using/ta-p/302556)
 
 
 ### Konfiguracija SNMP servera
-Najsigurniji SNMP protokol u ovom trenutku je SNMP verzija 3. Međutim, zbog kompleksnosti implementacije polling-a razumljivo je korišćenje SNMP verzije 2.
-
-Svakako, jednostavniji segment konfiguracije su SNMP trap-ovi u okviru verzije 3 na koji se fokusiramo ispod.
+U slučaju da postoji problem sa komunikacijom sa SNMP serverom, izvršava se provera poslatih poruka i njihovog statusa. Moguće je i generisati test trap poruku.
 ```
-config system snmp sysinfo
-	set status enable
-	set description "<IME-UREĐAJA>"
-	set contact-info "<MEJL-ADMINISTRATORA>"
-	set location "<IME-LOKACIJE>"
-config system snmp user
-    edit "<KORISNIČKO-IME>"
-        set notify-hosts <IP-SNMP-SERVERA>
-        set security-level auth-priv
-        set auth-proto sha256
-        set auth-pwd xxxx
-        set priv-proto aes256
-        set priv-pwd xxxx
-    next
-end
+diagnose test application snmpd 2
+diagnose test application snmpd 4
 ```
 
-U slučaju da se koristi samo SNMP verzija 3, preporučuje se brisanje svih community-ja.
+
+U najgorem slučaju je potrebno izvršiti debug, i koriste se sledeće komande:
 ```
-config system community
-	purge
-end
+diagnose debug disable
+diagnose debug reset
+diagnose debug application snmpd -1
+diagnose debug enable
 ```
-
-Preporuka je da se smanji limit prijave prilikom zauzeća memorije na uređajima.
-```
-config system sysinfo
-	set trap-free-memory-threshold 25
-	set trap-freeable-memory-threshold 50
-end
-```
-
-Kada su FortiGate u HA, moguće je da uređaji šalju SNMP trap pakete kroz ```ha-mgmt-interface```. To se ne preporučuje, zbog problema sa local-out saobraćajem FortiGate-a.
-
-
-### FortiGate HA menadžment interfejs
-Umesto ha-mgmt-interface komande, preporučuje se korišćenje seta komandi na menadžment interfejsu.
-```
-config system interface
-	edit <IME-INTERFEJSA>
-		set dedicated-to management
-		set management-ip <MENADŽMENT-IP/MASK>
-	next
-end
-```
-
-Komanda ```dedicated-to``` rezerviše menadžment interfejs, posle čega se on ne može referencirati u pravilima.
-
-[Technical Tip: FortiGate dedicated-mgmt feature, or Out-of-band Management](https://community.fortinet.com/t5/FortiGate/Technical-Tip-FortiGate-dedicated-mgmt-feature-or-Out-of-band/ta-p/193699)
-
-Komandom ```management-ip``` definišemo jedinstvenu IP adresu za obe jedinice, koja se može koristiti i na menadžment, i na servisnom interfejsu(ne preporučuje se).
-
-[Technical Tip: Implement independent Management IP for HA Cluster](https://community.fortinet.com/t5/FortiGate/Technical-Tip-Implement-independent-Management-IP-for-HA-Cluster/ta-p/224671)
 
 
 
