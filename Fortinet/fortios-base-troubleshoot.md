@@ -5,7 +5,7 @@
 Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pre implementacije u produkciono okruženje.
 
 - [Početak dokumenta](#fortigate-baseline-konfiguracija-prilikom-inicijalizacije-uređaja)
-	- [Sistemska podešavanja - Troubleshooting](#sistemska-podešavanja-troubleshooting)
+	- [Sistemska podešavanja - Troubleshooting](#sistemska-podešavanja---troubleshooting)
 		- [Upgrade firewall uređaja](#upgrade-firewall-uređaja)
 		- [Konfiguracija DNS servera](#konfiguracija-dns-servera)
 		- [Konfiguracija NTP servera](#konfiguracija-ntp-servera)
@@ -162,7 +162,7 @@ diagnose debug enable
 
 
 
-## Konfiguracija High-Availability(HA)
+## Konfiguracija High-Availability(HA) - Troubleshooting
 Konfiguracija HA je u većini implementacija ista, ili slična, i postoje određene preporuke koje se retko primenjuju, a značajni su za rad klastera.
 
 Obradićemo jedino rešenje koje ima smisla u implementaciji FortiGate HA, a to je **FortiGate Clustering Protocol(FGCP) Active-Passive(A-P)** mod rada.
