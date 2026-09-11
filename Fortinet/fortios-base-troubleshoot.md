@@ -13,7 +13,8 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 	- [Konfiguracija High-Availability(HA) - Troubleshooting](#konfiguracija-high-availabilityha---troubleshooting)
 		- [Inicijalna konfiguracija HA](#inicijalna-konfiguracija-ha)
 		- [Pregled logova u slučaju neočekivanog failover-a](#pregled-logova-u-slučaju-neočekivanog-failover-a)
-		- [Ubacivanje novog uređaja nakon RMA](#ubacivanje-novog-uređaja-nakon-rma)
+		- [Ubacivanje novog uređaja nakon RMA procedure](#ubacivanje-novog-uređaja-nakon-rma-procedure)
+		- [Izvršavanje HA Acceptance testa](#izvršavanje-ha-acceptance-testa)
 	- [Podešavanja interfejsa](#podešavanja-interfejsa)
 		- [Blokiranje intra-zone saobraćaja](#blokiranje-intra-zone-saobraćaja)
 		- [Isključivanje nekorišćenih interfejsa](#isključivanje-nekorišćenih-interfejsa)
@@ -261,7 +262,7 @@ Ubacivanje novog uređaja nakon RMA procedure se izvršava u nekoliko koraka.
 	- Kada se novi uređaj ubaci u HA i sinhronizuje sa primarnim, mogu se povezati produkcijske konekcije
 
 
-### FortiGate HA Acceptance test
+### Izvršavanje HA Acceptance testa
 Tokom svakog projekta implementacije redundantnih firewall jedinica, potrebno je odraditi acceptance test uređaja.
 
 Nakon konfiguracije i pre migracije produkcije na cluster, mogu se proveriti osnovne funkcionalnosti cluster-a.
