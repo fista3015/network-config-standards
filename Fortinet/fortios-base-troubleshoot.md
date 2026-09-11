@@ -12,6 +12,7 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 		- [Konfiguracija SNMP servera](#konfiguracija-snmp-servera)
 	- [Konfiguracija High-Availability(HA) - Troubleshooting](#konfiguracija-high-availabilityha---troubleshooting)
 		- [Inicijalna konfiguracija HA](#inicijalna-konfiguracija-ha)
+		- [Pregled logova u slučaju neočekivanog failover-a](#pregled-logova-u-slučaju-neočekivanog-failover-a
 		- [Replikacija sesija](#replikacija-sesija)
 		- [Failover kriterijumi](#failover-kriterijumi)
 		- [Failover opcije](#failover-opcije)
@@ -219,7 +220,33 @@ Detaljniji koraci u slučaju da navedeni prikazi ne pomognu prilikom sinhronizac
 
 
 ### Pregled logova u slučaju neočekivanog failover-a
+U slučaju neočekivanog failover-a, potrebno je proveriti status cluster-a, da li su svi uređaji konektovani sa primarnom jedinicom i da li su sinhronizovani. Pored toga se mogu videti i greške na heartbeat interfejsima pomoću komande za prikaz statusa.
+```
+get system ha status
+```
 
+U slučaju da je potrebno prikazati veći broj prošlih događaja cluster-a, to je moguće pomoću komande ispod.
+```
+diag sys ha history read
+```
+
+Za najbrži prikaz stanja cluster-a i njegove istorije, moguće je primeniti komandu ispod.
+```
+diag sys ha dump-by group
+``` 
+
+Komanda iznad daje sledeće značajne informacije:
+```
+linkfails = <BROJ-OBORENIH-INTERFEJSA>
+chg_time = <2(primarni) ili 3(sekundarni)>(work)
+mondev: <IME-INTERFEJSA>(...output omitted, status = <1 radi ili 0 ne radi>)
+'SN uređaja': ...output omitted, link_failure=<BROJ-PADA-INTERFEJSA>, ...output omitted, uptime/reset_cnt=<UPTIME-UREĐAJA>/<BROJ-PADA-MONITOR-INTERFEJSA>
+```
+
+Brzi prikaz MAC adresa cluster-a se može naći na primarnoj jedinici komandom ispod.
+```
+diag sys ha mac
+```
 
 
 ### Replikacija sesija
