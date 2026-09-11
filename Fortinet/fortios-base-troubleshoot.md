@@ -12,7 +12,7 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 		- [Konfiguracija SNMP servera](#konfiguracija-snmp-servera)
 	- [Konfiguracija High-Availability(HA) - Troubleshooting](#konfiguracija-high-availabilityha---troubleshooting)
 		- [Inicijalna konfiguracija HA](#inicijalna-konfiguracija-ha)
-		- [Pregled logova u slučaju neočekivanog failover-a](#pregled-logova-u-slučaju-neočekivanog-failover-a
+		- [Pregled logova u slučaju neočekivanog failover-a](#pregled-logova-u-slučaju-neočekivanog-failover-a)
 		- [Replikacija sesija](#replikacija-sesija)
 		- [Failover kriterijumi](#failover-kriterijumi)
 		- [Failover opcije](#failover-opcije)
