@@ -10,7 +10,7 @@ Baseline konfiguracija FortiGate firewall-a prilikom inicijalizacije uređaja pr
 		- [Konfiguracija DNS servera](#konfiguracija-dns-servera)
 		- [Konfiguracija NTP servera](#konfiguracija-ntp-servera)
 		- [Konfiguracija SNMP servera](#konfiguracija-snmp-servera)
-	- [Konfiguracija High-Availability(HA)](#konfiguracija-high-availabilityha)
+	- [Konfiguracija High-Availability(HA) - Troubleshooting](#konfiguracija-high-availabilityha---troubleshooting)
 		- [Inicijalna konfiguracija HA](#inicijalna-konfiguracija-ha)
 		- [Replikacija sesija](#replikacija-sesija)
 		- [Failover kriterijumi](#failover-kriterijumi)
@@ -163,48 +163,63 @@ diagnose debug enable
 
 
 ## Konfiguracija High-Availability(HA) - Troubleshooting
-Konfiguracija HA je u većini implementacija ista, ili slična, i postoje određene preporuke koje se retko primenjuju, a značajni su za rad klastera.
-
-Obradićemo jedino rešenje koje ima smisla u implementaciji FortiGate HA, a to je **FortiGate Clustering Protocol(FGCP) Active-Passive(A-P)** mod rada.
+Postoje različiti problemi koji mogu nastati prilikom konfiguracije FGCP HA ili zbog određenih promena na sistemu.
 
 
-### Inicijalna konfiguracija HA
-Inicijalna konfiguracija za rad klastera može uvek biti ista.
+### Uspostava HA
+Najosnovniji problem može nastati prilikom uspostave FGCP HA cluster-a.
 
-Konfiguracija primarnog HA uređaja:
+U tom slučaju je potrebno proveriti konfiguraciju na oba uređaju, prilikom čega se moraju poklapati osnovni parametri kao što su **Group ID**, **Group name**, **HA mod**(A-P, A-A), **Password** i **Hearbeat interfejsi**.
+
+Pored poklapanja interfejsa, potrebno je definisati prioritet svakog od uređaja, kao i način odlučivanja koji je uređaj aktivan(primaran).
+
+U slučaju da se pod menijem ne prikazuje drugi FortiGate uređaj, potrebno je izvršiti proveru komunikacije pomoću komandi za prikaz statusa.
 ```
-config system ha
-	set group-id <HA-ID>
-	set group-name <HA-IME>
-	set mode a-p
-	set password <HA-ŠIFRA>
-	set hbdev <HA-HB-IME-INTERFEJSA1> 150 <HA-HB-IME-INTERFEJSA2> 100
-	set override disable
-	set monitor <IME-INTERFEJSA>
-	set priority 150
-end
+get system ha status
 ```
 
-Konfiguracija sekundarnog HA uređaja:
+Ako se na prikazu ne vidi status drugog uređaja, potrebno je izvršiti debug HA poruka.
 ```
-config system ha
-	set group-id <HA-ID>
-	set group-name <HA-IME>
-	set mode a-p
-	set password <HA-ŠIFRA>
-	set hbdev <HA-HB-IME-INTERFEJSA1> 150 <HA-HB-IME-INTERFEJSA2> 100
-	set override disable
-	set priority 100
-end
+diagnose debug disable
+diagnose debug reset
+diagnose debug application hatalk -1
+diagnose debug application hasync -1
+diagnose debug enable
 ```
 
-Preporučuje se da se **group ID definiše eksplicitno**. Kada je group ID isti za klaster u istoj mreži, može doći do problema u dupliranim MAC address tabelama na svičevima preko kojih su vezani, čime izazivamo prekide produkcije.
 
-Preporučuje se da su **svi produkcioni interfejsi** monitor interfejsi.
+### Sinhronizacija HA članova
+Nakon što se uređaji povežu, potrebno je da se automatski sinhronizuju. U starijim verzijama, kao i u retkim slučajevima, proces se ne izvršava automatski ili se izvršava jako sporo.
 
-Preporučuje se da je prioritet primarnog uređaja veći od 128, što je podrazumevana vrednost prioriteta na FortiGate uređaju.
+Kada je to slučaj, prvo se proverava segment sinhronizacije pomoću komande za prikaz statusa.
+```
+get system ha status
+```
 
-Preporučena konfiguracija klastera je da se override opcija onemogući, gde se kontrola vrši pomoću uptime-a, gde ne želimo da prekidom uređaja dođe do duplog failover-a nakon što se povrati stanje primarnog uređaja.
+Detaljniji pregled je moguć prikazom koji naznačava tačan segment konfiguracije koji nije sinhronizovan, kao i VDOM u multi-VDOM okruženjima.
+```
+diagnose sys ha checksum test
+diagnose sys ha checksum show
+```
+
+U slučaju da je potrebno izolovati segment konfiguracije, to je moguće uraditi grep komandom. Za slučaj da je u pitanju firewall sa jednim VDOM-om, u komandi se koristi root.
+```
+diagnose sys ha checksum show root | grep system
+diagnose sys ha checksum show root | grep firewall
+diagnose sys ha checksum show root | grep router
+```
+
+Nekada je sinhronizacija sporija, čime se neko vreme ne izvršava rekalkulacija checksum-a, pa iako su uređaji sinhronizovani, to nije prikazano u sistemu. Kako bi ubrzali proces rekalkulacije checksum-a konfiguracije, moguće je primeniti zasebnu komandu.
+```
+diagnose sys ha checksum recalculate
+```
+
+Detaljniji koraci u slučaju da navedeni prikazi ne pomognu prilikom sinhronizacije ili je uređaj afektiran nekim od poznatih problema, moguće je pratiti zasebno uputstvo za ručnu sinhronizaciju uređaja u HA.
+[Troubleshooting Tip: How to troubleshoot HA synchronization issue using GUI and CLI on FortiGate/FortiProxy](https://community.fortinet.com/fortigate-3/troubleshooting-tip-how-to-troubleshoot-ha-synchronization-issue-using-gui-and-cli-on-fortigate-fortiproxy-95628)
+
+
+### Pregled logova u slučaju neočekivanog failover-a
+
 
 
 ### Replikacija sesija
