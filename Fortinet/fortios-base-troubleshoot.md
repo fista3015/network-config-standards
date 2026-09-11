@@ -246,10 +246,31 @@ diag sys ha mac
 ```
 
 
-### Ubacivanje novog uređaja nakon RMA
-Ubacivanje novog uređaja nakon RMA procedure se vrši u nekoliko koraka.
+### Ubacivanje novog uređaja nakon RMA procedure
+Ubacivanje novog uređaja nakon RMA procedure se izvršava u nekoliko koraka.
+1. U slučaju da je prvi uređaj i dalje u cluster-u, potrebno ga je izbaciti iz istog
+	- Izvlačenje produkcionih konekcija
+	- Izvlačenja heartbeat konekcija
+	- Gašenje uređaja
+	- Vađenje uređaja iz rek ormana
+2. Ubacivanje uređaja u cluster
+	- Ubacivanje uređaja u rek orman
+	- Kopiranje HA konfiguracije sa primarnog na novi uređaj sa manjim prioritetom
+	- U slučaju da je override mod ugašen, potrebno je još jednom ugasiti uređaj pre povezivanja(ili primeniti komandu diagnose sys ha reset-uptime)
+	- Povezivanja heartbeat interfejsa
+	- Kada se novi uređaj ubaci u HA i sinhronizuje sa primarnim, mogu se povezati produkcijske konekcije
 
 
+### FortiGate HA Acceptance test
+Tokom svakog projekta implementacije redundantnih firewall jedinica, potrebno je odraditi acceptance test uređaja.
+
+Nakon konfiguracije i pre migracije produkcije na cluster, mogu se proveriti osnovne funkcionalnosti cluster-a.
+- Provera failover-a nakon pada napajanja primarne jedinice
+- Provera failover-a hearbeat-a gašenjem primarne konekcije
+- Provera failover-a nakon pada monitor interfejsa
+- Provera failover-a nakon upgrade procedure
+
+Ovi testovi su često potrebni i nakon zamene uređaja posle RMA procedure.
 
 
 
